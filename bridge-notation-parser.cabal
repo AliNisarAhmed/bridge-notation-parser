@@ -1,0 +1,81 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.34.4.
+--
+-- see: https://github.com/sol/hpack
+
+name:           bridge-notation-parser
+version:        0.0.0
+build-type:     Simple
+
+library
+  other-modules:
+      Paths_bridge_notation_parser
+  hs-source-dirs:
+      src
+  default-extensions:
+      BlockArguments
+      DeriveAnyClass
+      DeriveGeneric
+      LambdaCase
+      NoImplicitPrelude
+      OverloadedStrings
+      StrictData
+  ghc-options: -F -pgmF=record-dot-preprocessor
+  build-depends:
+      base
+    , megaparsec
+    , record-hasfield
+    , rio
+    , text
+  default-language: Haskell2010
+
+executable bnp
+  main-is: Main.hs
+  other-modules:
+      Paths_bridge_notation_parser
+  hs-source-dirs:
+      app
+  default-extensions:
+      BlockArguments
+      DeriveAnyClass
+      DeriveGeneric
+      LambdaCase
+      NoImplicitPrelude
+      OverloadedStrings
+      StrictData
+  ghc-options: -F -pgmF=record-dot-preprocessor -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base
+    , bridge-notation-parser
+    , megaparsec
+    , record-hasfield
+    , rio
+    , text
+  default-language: Haskell2010
+
+test-suite bnp-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_bridge_notation_parser
+  hs-source-dirs:
+      test
+  default-extensions:
+      BlockArguments
+      DeriveAnyClass
+      DeriveGeneric
+      LambdaCase
+      NoImplicitPrelude
+      OverloadedStrings
+      StrictData
+  ghc-options: -F -pgmF=record-dot-preprocessor -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base
+    , bridge-notation-parser
+    , hspec
+    , megaparsec
+    , record-hasfield
+    , rio
+    , text
+  default-language: Haskell2010
