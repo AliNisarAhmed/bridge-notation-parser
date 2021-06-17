@@ -9,6 +9,8 @@ version:        0.0.0
 build-type:     Simple
 
 library
+  exposed-modules:
+      RBN
   other-modules:
       Paths_bridge_notation_parser
   hs-source-dirs:
@@ -28,6 +30,7 @@ library
     , record-hasfield
     , rio
     , text
+    , time
   default-language: Haskell2010
 
 executable bnp
@@ -52,6 +55,7 @@ executable bnp
     , record-hasfield
     , rio
     , text
+    , time
   default-language: Haskell2010
 
 test-suite bnp-test
@@ -78,4 +82,5 @@ test-suite bnp-test
     , record-hasfield
     , rio
     , text
+    , time
   default-language: Haskell2010

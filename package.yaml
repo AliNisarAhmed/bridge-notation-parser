@@ -15,6 +15,7 @@ dependencies:
   - rio
   - megaparsec
   - text
+  - time
 
 ghc-options:
   - -F -pgmF=record-dot-preprocessor

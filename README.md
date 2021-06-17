@@ -46,3 +46,28 @@ I - Item List
 {Text paragraph}
 ```
 
+### Detailed explanation of Labels
+
+#### D = Date and Time
+
+- Max len: 18
+- valid char: 0123456789CG:?
+
+##### Specs
+
+- The date is given in fixed format (yyyymmdd) without separators.
+- Unknown parts may be filled with a question mark (?), and mmdd or dd may be truncated.
+- The letter C may be used after the year (or year and month) to mean “circa” (approximation).
+- Optionally, a second date may be given (yyyymmdddd) to indicate a span (if lower wraps to next month).
+- The date (if not a span) may be followed by a colon (:) and the time in 24-hour fixed format (hhmmss), of which mmss or ss may be truncated.
+- Midnight may be indicated at the end of a day as 24 or at the start as 00.
+- Date and time are local to the location (L label) unless followed by the letter G (GMT)
+
+Examples:
+
+- [x] - D 19980131 (January 31, 1998)
+- [x] - D 199709 (some date in September, 1997)
+- [ ] - D 1986120911 (December 9-11, 1986)
+- [ ] - D 1955C (not sure but about 1955)
+- [ ] - D 20010704:1930 (July 4, 2001, 7:30 pm)
+- [ ] - D 20120428:072315G (to exact second GMT)
