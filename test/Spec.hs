@@ -15,7 +15,26 @@ main = hspec do
       testYYYYMM
     it "should correctly parse YYYY" do
       testYYYY
+  describe "Test Article Info Parser" do
+    it "should successfully parse both article title and author" do
+      testBothTitleAndAuthor
+    it "should successfully parse only author" do
+      testAuthorOnly
 
+testAuthorOnly :: IO ()
+testAuthorOnly = do
+  let input = "T :Ali Ahmed\n"
+  let Right (ArticleInfo title author) = MP.parse articleInfoParser "" input
+  title `shouldSatisfy` isNothing
+  author `shouldBe` "Ali Ahmed"
+
+testBothTitleAndAuthor :: IO ()
+testBothTitleAndAuthor = do
+  let input = "T This is my world:Ali Ahmed\n"
+  let Right (ArticleInfo title author) = MP.parse articleInfoParser "" input
+  title `shouldSatisfy` isJust
+  title `shouldBe` (Just "This is my world")
+  author `shouldBe` "Ali Ahmed"
 
 testYYYYMMDD :: IO ()
 testYYYYMMDD = do

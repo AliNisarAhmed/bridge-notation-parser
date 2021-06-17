@@ -46,12 +46,18 @@ I - Item List
 {Text paragraph}
 ```
 
+---
+---
+
 ### Detailed explanation of Labels
+
+---
+---
 
 #### D = Date and Time
 
 - Max len: 18
-- valid char: 0123456789CG:?
+- Valid char: 0123456789CG:?
 
 ##### Specs
 
@@ -71,3 +77,21 @@ Examples:
 - [ ] - D 1955C (not sure but about 1955)
 - [ ] - D 20010704:1930 (July 4, 2001, 7:30 pm)
 - [ ] - D 20120428:072315G (to exact second GMT)
+
+---
+
+#### T = Title and Author
+
+- Max len: 128
+- Valid char: (all)
+
+#####
+
+- Title of an article about the deal and author's name, separated by colon
+- If there is a colon in the title, it is escaped by double colon (::) (applies to labels TLES only)
+
+Examples:
+
+- [x] - T Greed Costs Contract:Richard Pavlicek
+- [x] - T :Joe Blow (untitled, written by Joe Blow)
+- [ ] - T Preempts:: Fact or Fiction?:Marty Bergen
