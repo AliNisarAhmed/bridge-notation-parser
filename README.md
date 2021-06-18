@@ -85,7 +85,7 @@ Examples:
 - Max len: 128
 - Valid char: (all)
 
-#####
+##### Spec
 
 - Title of an article about the deal and author's name, separated by colon
 - If there is a colon in the title, it is escaped by double colon (::) (applies to labels TLES only)
@@ -95,3 +95,20 @@ Examples:
 - [x] - T Greed Costs Contract:Richard Pavlicek
 - [x] - T :Joe Blow (untitled, written by Joe Blow)
 - [ ] - T Preempts:: Fact or Fiction?:Marty Bergen
+
+---
+
+#### L = Location
+
+- Max len : 128
+- Valid char: (all)
+
+##### Spec
+
+- represents where the deal occurred
+- Maybe a single string without a separator (:)
+- If (:) is present, the more general location is given first
+
+- [x] - L Fort Lauderdale FL
+- [x] - L Toronto ON:Royal York Hotel
+- [x] - L Valkenberg NL:Holland Casino

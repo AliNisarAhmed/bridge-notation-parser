@@ -23,6 +23,22 @@ main = hspec do
       testAuthorOnly
     -- it "should successfully parse title that contains an escaped ':'"
     --   testTitleWithColon
+  describe "Test Location Parser" do
+    it "should successfully parse generic location only" do
+      testGenericLocation
+    it "shoudl successfully parse both generic and specific location" do
+      testFullLocation
+
+testFullLocation :: IO ()
+testFullLocation = do
+  let input = "L Edmonton, AB, Canada:Monticello Apartments\n"
+  MP.parse locationParser "" input `shouldParse` Location "Edmonton, AB, Canada" (Just "Monticello Apartments")
+
+
+testGenericLocation :: IO ()
+testGenericLocation = do
+  let input = "L Toronto, ON, Canada\n"
+  MP.parse locationParser "" input `shouldParse` Location "Toronto, ON, Canada" Nothing
 
 testAuthorOnly :: IO ()
 testAuthorOnly = do

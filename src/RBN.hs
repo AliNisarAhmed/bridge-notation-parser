@@ -14,6 +14,24 @@ import Text.Megaparsec.Debug (dbg)
 type Parser = Parsec Void Text
 
 
+----- Location Parser ------
+
+data Location = Location
+    { generic :: Text
+    , specific :: Maybe Text
+    } deriving (Eq, Show)
+
+locationParser :: Parser Location
+locationParser = do
+  MPC.char 'L'
+  MPC.space1
+  generic <- genericLocationParser
+  specific <- specificLocationParser
+  pure $ Location (T.pack generic) (T.pack <$> specific)
+  where
+    genericLocationParser = MP.manyTill MP.anySingle (MP.choice [MPC.newline, MPC.char ':'])
+    specificLocationParser = optional (MP.manyTill MP.anySingle MPC.newline)
+
 ---- Article Info Parser -----
 data ArticleInfo = ArticleInfo
   { title :: Maybe Text,
