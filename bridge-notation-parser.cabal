@@ -78,6 +78,7 @@ test-suite bnp-test
       base
     , bridge-notation-parser
     , hspec
+    , hspec-megaparsec
     , megaparsec
     , record-hasfield
     , rio

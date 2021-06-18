@@ -45,3 +45,4 @@ tests:
     dependencies:
       - bridge-notation-parser
       - hspec
+      - hspec-megaparsec

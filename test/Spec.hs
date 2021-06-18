@@ -4,6 +4,7 @@ import RIO
 import Test.Hspec
 import RBN
 import qualified Text.Megaparsec as MP
+import Test.Hspec.Megaparsec
 import Data.Time
 
 main :: IO ()
@@ -20,21 +21,26 @@ main = hspec do
       testBothTitleAndAuthor
     it "should successfully parse only author" do
       testAuthorOnly
+    -- it "should successfully parse title that contains an escaped ':'"
+    --   testTitleWithColon
 
 testAuthorOnly :: IO ()
 testAuthorOnly = do
   let input = "T :Ali Ahmed\n"
-  let Right (ArticleInfo title author) = MP.parse articleInfoParser "" input
-  title `shouldSatisfy` isNothing
-  author `shouldBe` "Ali Ahmed"
+  MP.parse articleInfoParser "" input `shouldParse` ArticleInfo Nothing "Ali Ahmed"
 
 testBothTitleAndAuthor :: IO ()
 testBothTitleAndAuthor = do
   let input = "T This is my world:Ali Ahmed\n"
-  let Right (ArticleInfo title author) = MP.parse articleInfoParser "" input
-  title `shouldSatisfy` isJust
-  title `shouldBe` (Just "This is my world")
-  author `shouldBe` "Ali Ahmed"
+  MP.parse articleInfoParser "" input `shouldParse` ArticleInfo (Just "This is my world") "Ali Ahmed"
+
+-- testTitleWithColon :: IO ()
+-- testTitleWithColon = do
+--   let input = "T this title ::has colons:Ali Ahmed"
+--   let Right (ArticleInfo title author) = MP.parse articleInfoParser "" input
+--   title `shouldSatisfy` isJust
+--   title `shouldBe` (Just "this title ::has colons")
+--   author `shouldBe` "Ali Ahmed"
 
 testYYYYMMDD :: IO ()
 testYYYYMMDD = do
