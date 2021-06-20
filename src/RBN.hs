@@ -1,7 +1,9 @@
-module RBN where
+module{-# LANGUAGE DuplicateRecordFields, DataKinds, FlexibleInstances, TypeApplications, FlexibleContexts, MultiParamTypeClasses, TypeFamilies, TypeOperators, GADTs, UndecidableInstances #-}RBN where
+{- HLINT ignore "Redundant bracket" -}
 
-import Data.Text (Text)
+import qualified Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.Text.Read as TR
 import Data.Time
 import Data.Void
 import RIO
@@ -13,24 +15,102 @@ import Text.Megaparsec.Debug (dbg)
 
 type Parser = Parsec Void Text
 
+---- Session Parser
+
+data Session
+  = Segment Int
+  | Quarterfinal Int
+  | Semifinal Int
+  | Final Int
+  | Playoff Int
+  | RoundOfNumber Int
+  | Qualifying Int
+  | GeneralSession Text Text
+  deriving (Eq, Show)
+
+sessionParser :: Parser Session
+sessionParser = do
+  MPC.char 'S'
+  MPC.space1
+  sessionParser'
+  where
+    sessionParser' :: Parser Session
+    sessionParser' =
+      MP.choice
+        [ segmentParser,
+          knockoutRoundParser,
+          roundOfParser,
+          generalSessionParser
+        ]
+    roundOfParser = undefined
+    generalSessionParser :: Parser Session
+    generalSessionParser = do
+      s1 <- MP.manyTill MPCL.charLiteral (MPC.char ':')
+      void $ MPC.char ':'
+      s2 <- MP.manyTill MPCL.charLiteral MPC.newline
+      pure $ GeneralSession (T.pack s1) (T.pack s2)
+
+    segmentParser :: Parser Session
+    segmentParser = do
+      n <- MPCL.decimal
+      void MPC.newline
+      pure $ Segment n
+    knockoutRoundParser :: Parser Session
+    knockoutRoundParser = do
+      c <- MPCL.charLiteral
+      round <- roundParser
+      pure $ charToSession c round
+    roundParser :: Parser Int
+    roundParser = MP.try (do
+      MPC.char ':'
+      n <- MPCL.decimal
+      void MPC.newline
+      pure n)
+    charToSession :: Char -> (Int -> Session)
+    charToSession 'F' = Final
+    charToSession 'S' = Semifinal
+    charToSession 'Q' = Quarterfinal
+    charToSession 'P' = Playoff
+    charToSession 'I' = Qualifying
+
+
+---- Event Parser ----
+
+data Event = Event
+  { generic :: Text,
+    specific :: Maybe Text
+  }
+  deriving (Eq, Show)
+
+eventParser :: Parser Event
+eventParser = do
+  MPC.char 'E'
+  MPC.space1
+  generic <- genericParser
+  specific <- specificParser
+  pure $ Event (T.pack generic) (T.pack <$> specific)
 
 ----- Location Parser ------
 
 data Location = Location
-    { generic :: Text
-    , specific :: Maybe Text
-    } deriving (Eq, Show)
+  { generic :: Text,
+    specific :: Maybe Text
+  }
+  deriving (Eq, Show)
 
 locationParser :: Parser Location
 locationParser = do
   MPC.char 'L'
   MPC.space1
-  generic <- genericLocationParser
-  specific <- specificLocationParser
+  generic <- genericParser
+  specific <- specificParser
   pure $ Location (T.pack generic) (T.pack <$> specific)
-  where
-    genericLocationParser = MP.manyTill MP.anySingle (MP.choice [MPC.newline, MPC.char ':'])
-    specificLocationParser = optional (MP.manyTill MP.anySingle MPC.newline)
+
+genericParser :: Parser [Char]
+genericParser = MP.manyTill MP.anySingle (MP.choice [MPC.newline, MPC.char ':'])
+
+specificParser :: Parser (Maybe [Char])
+specificParser = optional (MP.manyTill MP.anySingle MPC.newline)
 
 ---- Article Info Parser -----
 data ArticleInfo = ArticleInfo
@@ -80,8 +160,6 @@ parseYYYYMM = parseTimeM True defaultTimeLocale "%Y%m"
 parseYYYY :: String -> Maybe Day
 parseYYYY = parseTimeM True defaultTimeLocale "%Y"
 
-
-
 -- parseWithTitle :: Parser (Maybe Text, Text)
 -- parseWithTitle = do
 --   title <- dbg "manytill title" $ MP.manyTill (MP.try nonColon <|> doubleColon) (MPC.char ':')
@@ -99,4 +177,3 @@ parseYYYY = parseTimeM True defaultTimeLocale "%Y"
 -- doubleColonParser = do
 --   dbg "not followed by" $ MP.notFollowedBy (MPC.char ':')
 --   c <- dbg "parsing first colon" $ (MP.satisfy (/= ':'))
---   pure c

@@ -109,6 +109,55 @@ Examples:
 - Maybe a single string without a separator (:)
 - If (:) is present, the more general location is given first
 
+##### Examples
+
 - [x] - L Fort Lauderdale FL
 - [x] - L Toronto ON:Royal York Hotel
 - [x] - L Valkenberg NL:Holland Casino
+- [ ] - L Edmonton::AB:Royal Alex
+
+---
+
+#### E = Event
+
+- Max len : 128
+- Valid char: (all)
+
+##### Spec
+
+- The name of the event, or a main heading such as a catalog of lesson deals.
+- This can be a single string, or two strings separated by a colon (:). If two strings, the more general one should be given first
+
+##### Examples
+
+- [x] - E 1999 Grand National Teams
+- [x] - E Southeastern Regional:Flight A Open Pairs
+- [x] - E Beginning Bridge:Lesson 11
+
+---
+
+#### S = Session, Stage or Subheading
+
+- Max len: 128
+- Valid char: (all)
+
+##### Spec
+
+- The part of an event, or a subheading such as a lesson topic.
+- A number alone indicates the session (typically in a pair event).
+- Allowed abbreviations are
+  - F = Final,
+  - P = Playoff,
+  - S = Semifinal,
+  - Q = Quarterfinal,
+  - I = Initial stage (Qualifying).
+  - R16 = Round of 16 (likewise for any number) or
+- A separator (:) allows further clarification, where a number alone indicates the segment or round.
+
+##### Exampes
+
+- [ ] - S 2 (Session 2)
+- [ ] - S S:3 (Semifinal, Segment 3)
+- [ ] - S R32:1 (Round of 32, Segment 1)
+- [ ] - S I:12 (Qualifying, Round 12)
+- [ ] - S Slam Bidding:Blackwood

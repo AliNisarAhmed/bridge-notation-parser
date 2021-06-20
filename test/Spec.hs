@@ -28,6 +28,21 @@ main = hspec do
       testGenericLocation
     it "shoudl successfully parse both generic and specific location" do
       testFullLocation
+  describe "Test Event Parser" do
+    it "should successfully parse generic Event only" do
+      testGenericEvent
+    it "should successfully parse both generic and specific event" do
+      testFullEvent
+
+testGenericEvent :: IO ()
+testGenericEvent = do
+  let input = "E 1999 Grand National Teams\n"
+  MP.parse eventParser "" input `shouldParse` Event "1999 Grand National Teams" Nothing
+
+testFullEvent :: IO ()
+testFullEvent = do
+  let input = "E Southeastern Regional:Flight A Open Pairs\n"
+  MP.parse eventParser "" input `shouldParse` Event "Southeastern Regional" (Just "Flight A Open Pairs")
 
 testFullLocation :: IO ()
 testFullLocation = do
