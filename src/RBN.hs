@@ -1,5 +1,4 @@
-module{-# LANGUAGE DuplicateRecordFields, DataKinds, FlexibleInstances, TypeApplications, FlexibleContexts, MultiParamTypeClasses, TypeFamilies, TypeOperators, GADTs, UndecidableInstances #-}RBN where
-{- HLINT ignore "Redundant bracket" -}
+module RBN where
 
 import qualified Data.Text (Text)
 import qualified Data.Text as T
@@ -23,7 +22,7 @@ data Session
   | Semifinal Int
   | Final Int
   | Playoff Int
-  | RoundOfNumber Int
+  | RoundOfNumber Int (Maybe Int) -- R32:3 == RoundOfNumber 32 (Just 3)
   | Qualifying Int
   | GeneralSession Text Text
   deriving (Eq, Show)
@@ -32,21 +31,19 @@ sessionParser :: Parser Session
 sessionParser = do
   MPC.char 'S'
   MPC.space1
-  sessionParser'
+  MP.try sessionParser' <|> generalSessionParser
   where
     sessionParser' :: Parser Session
     sessionParser' =
       MP.choice
         [ segmentParser,
-          knockoutRoundParser,
           roundOfParser,
-          generalSessionParser
+          knockoutRoundParser
         ]
-    roundOfParser = undefined
+
     generalSessionParser :: Parser Session
     generalSessionParser = do
       s1 <- MP.manyTill MPCL.charLiteral (MPC.char ':')
-      void $ MPC.char ':'
       s2 <- MP.manyTill MPCL.charLiteral MPC.newline
       pure $ GeneralSession (T.pack s1) (T.pack s2)
 
@@ -55,24 +52,44 @@ sessionParser = do
       n <- MPCL.decimal
       void MPC.newline
       pure $ Segment n
+
     knockoutRoundParser :: Parser Session
     knockoutRoundParser = do
       c <- MPCL.charLiteral
       round <- roundParser
       pure $ charToSession c round
+
     roundParser :: Parser Int
-    roundParser = MP.try (do
+    roundParser = do
       MPC.char ':'
       n <- MPCL.decimal
       void MPC.newline
-      pure n)
+      pure n
+
+    roundOfParser :: Parser Session
+    roundOfParser =
+      MP.try
+        ( do
+            n <- rp
+            void MPC.newline
+            pure $ RoundOfNumber n Nothing
+        )
+        <|> do
+          n1 <- rp
+          n2 <- roundParser
+          pure $ RoundOfNumber n1 (Just n2)
+      where
+        rp :: Parser Int
+        rp = do
+          void $ MPC.char 'R'
+          MPCL.decimal
+
     charToSession :: Char -> (Int -> Session)
     charToSession 'F' = Final
     charToSession 'S' = Semifinal
     charToSession 'Q' = Quarterfinal
     charToSession 'P' = Playoff
     charToSession 'I' = Qualifying
-
 
 ---- Event Parser ----
 

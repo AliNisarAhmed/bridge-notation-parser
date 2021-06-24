@@ -1,11 +1,11 @@
 module Main where
 
+import Data.Time
+import RBN
 import RIO
 import Test.Hspec
-import RBN
-import qualified Text.Megaparsec as MP
 import Test.Hspec.Megaparsec
-import Data.Time
+import qualified Text.Megaparsec as MP
 
 main :: IO ()
 main = hspec do
@@ -21,8 +21,8 @@ main = hspec do
       testBothTitleAndAuthor
     it "should successfully parse only author" do
       testAuthorOnly
-    -- it "should successfully parse title that contains an escaped ':'"
-    --   testTitleWithColon
+  -- it "should successfully parse title that contains an escaped ':'"
+  --   testTitleWithColon
   describe "Test Location Parser" do
     it "should successfully parse generic location only" do
       testGenericLocation
@@ -33,6 +33,46 @@ main = hspec do
       testGenericEvent
     it "should successfully parse both generic and specific event" do
       testFullEvent
+  describe "Test Session Parser" do
+    it "should successfully parse Segment" do
+      testSegmentParser
+    it "should successfully parse Knockout rounds (Quarters, Semis, Finals, Playoffs, Qualifying)" do
+      testKnockoutRoundParser
+    it "should successfully parse Round number" do
+      testRoundParser
+    it "should successfully parse Generic Round and Session" do
+      testGenericSessionParser
+
+testGenericSessionParser :: IO ()
+testGenericSessionParser = do
+  let i = "S Slam Bidding:Blackwood\n"
+  MP.parse sessionParser "" i `shouldParse` GeneralSession "Slam Bidding" "Blackwood"
+
+testRoundParser :: IO ()
+testRoundParser = do
+  let
+    i1 = "S R32\n"
+    i2 = "S R64:3\n"
+  MP.parse sessionParser "" i1 `shouldParse` RoundOfNumber 32 Nothing
+  MP.parse sessionParser "" i2 `shouldParse` RoundOfNumber 64 (Just 3)
+
+testKnockoutRoundParser :: IO ()
+testKnockoutRoundParser = do
+  let q = "S Q:8\n"
+  MP.parse sessionParser "" q `shouldParse` Quarterfinal 8
+  let s = "S S:4\n"
+  MP.parse sessionParser "" s `shouldParse` Semifinal 4
+  let f = "S F:12\n"
+  MP.parse sessionParser "" f `shouldParse` Final 12
+  let p = "S P:9\n"
+  MP.parse sessionParser "" p `shouldParse` Playoff 9
+  let qy = "S I:9\n"
+  MP.parse sessionParser "" qy `shouldParse` Qualifying 9
+
+testSegmentParser :: IO ()
+testSegmentParser = do
+  let input = "S 2\n"
+  MP.parse sessionParser "" input `shouldParse` Segment 2
 
 testGenericEvent :: IO ()
 testGenericEvent = do
@@ -48,7 +88,6 @@ testFullLocation :: IO ()
 testFullLocation = do
   let input = "L Edmonton, AB, Canada:Monticello Apartments\n"
   MP.parse locationParser "" input `shouldParse` Location "Edmonton, AB, Canada" (Just "Monticello Apartments")
-
 
 testGenericLocation :: IO ()
 testGenericLocation = do
