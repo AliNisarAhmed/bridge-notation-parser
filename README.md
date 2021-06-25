@@ -156,8 +156,42 @@ Examples:
 
 ##### Exampes
 
-- [ ] - S 2 (Session 2)
-- [ ] - S S:3 (Semifinal, Segment 3)
-- [ ] - S R32:1 (Round of 32, Segment 1)
-- [ ] - S I:12 (Qualifying, Round 12)
-- [ ] - S Slam Bidding:Blackwood
+- [x] - S 2 (Session 2)
+- [x] - S S:3 (Semifinal, Segment 3)
+- [x] - S R32:1 (Round of 32, Segment 1)
+- [x] - S I:12 (Qualifying, Round 12)
+- [x] - S Slam Bidding:Blackwood
+
+---
+
+#### F = Form of Scoring
+
+- Max len: 64
+- Valid char: (all)
+
+##### Spec
+
+- The kind of scoring in effect.
+- This can be a word, phrase or one-letter abbreviation:
+  - I = IMPs
+  - B = Board-a-match (aka Point-a-board)
+  - T = Total points
+  - X = IMP pairs (aka Cross-IMPs)
+  - M = Matchpoints
+  - N = Instant matchpoints
+  - R = Rubber bridge
+  - C = Chicago
+  - A = Cavendish (same as Chicago but second/third dealer nonvulnerable) or
+  - P = Plus-or-fishfood (my silliness for the side that goes plus wins; honors do not count).
+- Note that abbreviations I, B and T imply team competition; all others imply pair competition.
+
+- Optionally, this may be followed by a separator (:) and modifying information. The word “old” is assumed to mean “prior to the scoring changes of 1987.” A year may be entered to indicate the scoring scale in use at that time.
+
+- [x] - F I (IMPs)
+- [x] - F N (Instant matchpoints)
+- [x] - F X:Butler (IMP pairs, Butler type)
+- [x] - F I:1952 (IMPs, using scale from 1952)
+- [x] - F M:old (Matchpoints before 1987 changes)
+- [x] - F R (Rubber bridge)
+- [x] - F C:NS 60 (Chicago, N-S have 60 partscore)
+- [x] - F A:no honors or partscore carryover

@@ -1,5 +1,6 @@
 module RBN where
 
+
 import qualified Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Read as TR
@@ -13,6 +14,77 @@ import qualified Text.Megaparsec.Char.Lexer as MPCL
 import Text.Megaparsec.Debug (dbg)
 
 type Parser = Parsec Void Text
+
+---- Scoring Parser
+
+data Scoring
+  = IMPs (Maybe ScoreDetail)
+  | BoardAMatch (Maybe ScoreDetail)
+  | TotalPoints (Maybe ScoreDetail)
+  | IMPPairs (Maybe ScoreDetail)
+  | Matchpoints (Maybe ScoreDetail)
+  | InstantMatchpoints (Maybe ScoreDetail)
+  | RubberBridge (Maybe ScoreDetail)
+  | Chicago (Maybe ScoreDetail)
+  | Cavendish (Maybe ScoreDetail)
+  | PlusOrFishfood (Maybe ScoreDetail)
+  deriving (Eq, Show)
+
+data ScoreDetail
+  = YearOfScoring Int
+  | NorthSouthPartscore Int
+  | EastWestPartscore Int
+  | GeneralScoreDetail Text
+  deriving (Eq, Show)
+
+scoringParser :: Parser Scoring
+scoringParser = do
+  MPC.char 'F'
+  MPC.space1
+  s <- sp
+  s <$> scoreDetailParser
+  where
+    sp :: Parser (Maybe ScoreDetail -> Scoring)
+    sp = do
+      charToScoring <$> MPCL.charLiteral
+    charToScoring :: Char -> (Maybe ScoreDetail -> Scoring)
+    charToScoring c =
+      case c of
+        'I' -> IMPs
+        'B' -> BoardAMatch
+        'T' -> TotalPoints
+        'X' -> IMPPairs
+        'M' -> Matchpoints
+        'N' -> InstantMatchpoints
+        'R' -> RubberBridge
+        'C' -> Chicago
+        'A' -> Cavendish
+        'P' -> PlusOrFishfood
+
+scoreDetailParser :: Parser (Maybe ScoreDetail)
+scoreDetailParser =
+  MP.optional
+    ( do
+        MPC.char ':'
+        MP.try yearOfScoring <|> MP.try (pairPartscore "NS") <|> MP.try (pairPartscore "EW") <|> MP.try generalDetail
+    )
+  where
+    yearOfScoring :: Parser ScoreDetail
+    yearOfScoring = do
+      n <- MPCL.decimal
+      void MPC.newline
+      pure $ YearOfScoring n
+    pairPartscore :: Text -> Parser ScoreDetail
+    pairPartscore pair = do
+      void $ MPC.string pair
+      void MPC.space1
+      n <- MPCL.decimal
+      void MPC.newline
+      pure $ NorthSouthPartscore n
+    generalDetail :: Parser ScoreDetail
+    generalDetail = do
+      s <- MP.manyTill MPCL.charLiteral MPC.newline
+      pure $ GeneralScoreDetail (T.pack s)
 
 ---- Session Parser
 
@@ -194,3 +266,4 @@ parseYYYY = parseTimeM True defaultTimeLocale "%Y"
 -- doubleColonParser = do
 --   dbg "not followed by" $ MP.notFollowedBy (MPC.char ':')
 --   c <- dbg "parsing first colon" $ (MP.satisfy (/= ':'))
+

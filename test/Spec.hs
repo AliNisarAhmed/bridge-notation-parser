@@ -42,6 +42,35 @@ main = hspec do
       testRoundParser
     it "should successfully parse Generic Round and Session" do
       testGenericSessionParser
+  describe "Test Scoring Parser" do
+    it "should successfully parse scoring without details" do
+      testScoringWithoutDetailParser
+    it "should successfully parse scoring with details" do
+      testScoringWithDetailParser
+
+testScoringWithDetailParser :: IO ()
+testScoringWithDetailParser = do
+  let i1 = "F X:Butler\n"
+      i2 = "F I:1952\n"
+      i3 = "F M:old\n"
+      i4 = "F C:NS 60\n"
+      i5 = "F A:no honors or partscore carryover\n"
+  MP.parse scoringParser "" i1 `shouldParse` IMPPairs (Just $ GeneralScoreDetail "Butler")
+  MP.parse scoringParser "" i2 `shouldParse` IMPs (Just $ YearOfScoring 1952)
+  MP.parse scoringParser "" i3 `shouldParse` Matchpoints (Just $ GeneralScoreDetail "old")
+  MP.parse scoringParser "" i4 `shouldParse` Chicago (Just $ NorthSouthPartscore 60)
+  MP.parse scoringParser "" i5 `shouldParse` Cavendish (Just $ GeneralScoreDetail "no honors or partscore carryover")
+
+testScoringWithoutDetailParser :: IO ()
+testScoringWithoutDetailParser = do
+  let i1 = "F I\n"
+      i2 = "F N\n"
+      i3 = "F R\n"
+      i4 = "F C\n"
+  MP.parse scoringParser "" i1 `shouldParse` IMPs Nothing
+  MP.parse scoringParser "" i2 `shouldParse` InstantMatchpoints Nothing
+  MP.parse scoringParser "" i3 `shouldParse` RubberBridge Nothing
+  MP.parse scoringParser "" i4 `shouldParse` Chicago Nothing
 
 testGenericSessionParser :: IO ()
 testGenericSessionParser = do
@@ -50,9 +79,8 @@ testGenericSessionParser = do
 
 testRoundParser :: IO ()
 testRoundParser = do
-  let
-    i1 = "S R32\n"
-    i2 = "S R64:3\n"
+  let i1 = "S R32\n"
+      i2 = "S R64:3\n"
   MP.parse sessionParser "" i1 `shouldParse` RoundOfNumber 32 Nothing
   MP.parse sessionParser "" i2 `shouldParse` RoundOfNumber 64 (Just 3)
 
