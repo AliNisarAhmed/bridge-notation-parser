@@ -1,6 +1,5 @@
 module RBN where
 
-
 import qualified Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Read as TR
@@ -14,6 +13,36 @@ import qualified Text.Megaparsec.Char.Lexer as MPCL
 import Text.Megaparsec.Debug (dbg)
 
 type Parser = Parsec Void Text
+
+---- Team Name Parser
+
+data Teams = Teams
+  { names :: (Text, Text)
+  , scores :: Maybe (Double, Double)
+  }
+  deriving (Eq, Show)
+
+teamsParser :: Parser Teams
+teamsParser = do
+  MPC.char 'K'
+  MPC.space1
+  names <- teamNamesParser
+  scores <- teamScoresParser
+  pure $ Teams names scores
+  where
+    teamNamesParser :: Parser (Text, Text)
+    teamNamesParser = do
+      team1 <- MP.manyTill MPCL.charLiteral (MPC.char ':')
+      team2 <- MP.manyTill MPCL.charLiteral (MP.try $ MPC.char ':' <|> MPC.newline)
+      pure (T.pack team1, T.pack team2)
+    teamScoresParser :: Parser (Maybe (Double, Double))
+    teamScoresParser = MP.optional do
+      s1 <- MP.try MPCL.float <|> MPCL.decimal
+      MPC.char ':'
+      s2 <- MP.try MPCL.float <|> MPCL.decimal
+      MPC.newline
+      pure (s1, s2)
+
 
 ---- Scoring Parser
 
@@ -266,4 +295,3 @@ parseYYYY = parseTimeM True defaultTimeLocale "%Y"
 -- doubleColonParser = do
 --   dbg "not followed by" $ MP.notFollowedBy (MPC.char ':')
 --   c <- dbg "parsing first colon" $ (MP.satisfy (/= ':'))
-

@@ -195,3 +195,29 @@ Examples:
 - [x] - F R (Rubber bridge)
 - [x] - F C:NS 60 (Chicago, N-S have 60 partscore)
 - [x] - F A:no honors or partscore carryover
+
+---
+
+#### K = Team Names and Carryovers
+
+- Max len: 84
+- Valid char: (all)
+
+##### Spec
+
+- The names of two teams in a bridge match, which may be a captain’s name, country name, etc., separated by a colon.
+- The team given first is North-South for the first of each pair of identical deals.
+
+- Optionally, this may be followed by a colon and carryover for Team 1; then another colon and carryover for Team 2.
+- Carryovers may be IMPs, matchpoints or total points, depending on form of scoring.
+- Fractional carryovers are allowed and must be expressed in hundredths (two decimal places).
+- Negative carryovers are allowed and are useful to deduct a penalty assessed in the current segment (e.g., slow play)
+
+##### Examples
+
+- [x] - K Nickell:Schwartz
+- [x] - K Italy:USA1:999:22 (Italy leads by 977)
+- [x] - K Meckstroth's Marauders:Rodwell's Rockets
+- [x] - K Iceland:Bulgaria:76.33:91.50
+- [ ] - K France:Spain::-5 (Spain penalized 5)
+- [ ] - K GIB:Jack:99-8 (GIB up 99 but penalized 8)

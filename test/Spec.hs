@@ -47,6 +47,27 @@ main = hspec do
       testScoringWithoutDetailParser
     it "should successfully parse scoring with details" do
       testScoringWithDetailParser
+  describe "Test Team Names parser" do
+    it "should successfully parse team names without scores" do
+      testTeamNamesWithoutScoresParser
+    it "should successfully parse team names with scores" do
+      testTeamNamesWithScoresParser
+
+testTeamNamesWithScoresParser :: IO ()
+testTeamNamesWithScoresParser = do
+  let i1 = "K Italy:USA1:999:22\n"
+      i2 = "K Iceland:Bulgaria:76.33:91.50\n"
+      i3 = "K France:Spain::-5\n"
+  MP.parse teamsParser "" i1 `shouldParse` Teams ("Italy", "USA1") (Just (999, 22))
+  MP.parse teamsParser "" i2 `shouldParse` Teams ("Iceland", "Bulgaria") (Just (76.33, 91.5))
+  -- MP.parse teamsParser "" i3 `shouldParse` Teams ("France", "Spain") (Just (0, -5))
+
+testTeamNamesWithoutScoresParser :: IO ()
+testTeamNamesWithoutScoresParser = do
+  let i1 = "K Nickell:Schwartz\n"
+      i2 = "K Meckstroth's Marauders:Rodwell's Rockets\n"
+  MP.parse teamsParser "" i1 `shouldParse` Teams ("Nickell", "Schwartz") Nothing
+  MP.parse teamsParser "" i2 `shouldParse` Teams ("Meckstroth's Marauders", "Rodwell's Rockets") Nothing
 
 testScoringWithDetailParser :: IO ()
 testScoringWithDetailParser = do
