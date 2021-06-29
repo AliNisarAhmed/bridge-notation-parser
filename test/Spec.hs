@@ -52,6 +52,36 @@ main = hspec do
       testTeamNamesWithoutScoresParser
     it "should successfully parse team names with scores" do
       testTeamNamesWithScoresParser
+  describe "Test Players Parser" do
+    it "should successfully parse the four players" do
+      testParseFourPlayers
+    it "should successfully parse North player name only" do
+      testParseNorthOnly
+    it "parse player names with room info" do
+      testParsePlayerWithRooms
+
+testParsePlayerWithRooms :: IO ()
+testParsePlayerWithRooms = do
+  let i1 = "N :Jan+Joe:O\n"
+      west = Just $ Player West "Jan"
+      east = Just $ Player East "Joe"
+  MP.parse playersParser "" i1 `shouldParse` Players Nothing Nothing west east Nothing (Just Open) Nothing
+
+testParseNorthOnly :: IO ()
+testParseNorthOnly = do
+  let i1 = "N Soloway\n"
+      p1 = Just $ Player North "Soloway"
+  MP.parse playersParser "" i1 `shouldParse` Players p1 Nothing Nothing Nothing Nothing Nothing Nothing
+
+testParseFourPlayers :: IO ()
+testParseFourPlayers = do
+  let i1 = "N Wolff+Hamman:Stansby+Martel\n"
+      p1 = Just $ Player North "Wolff"
+      p2 = Just $ Player South "Hamman"
+      p3 = Just $ Player West "Stansby"
+      p4 = Just $ Player East "Martel"
+  MP.parse playersParser "" i1 `shouldParse` Players p1 p2 p3 p4 Nothing Nothing Nothing
+
 
 testTeamNamesWithScoresParser :: IO ()
 testTeamNamesWithScoresParser = do

@@ -221,3 +221,28 @@ Examples:
 - [x] - K Iceland:Bulgaria:76.33:91.50
 - [ ] - K France:Spain::-5 (Spain penalized 5)
 - [ ] - K GIB:Jack:99-8 (GIB up 99 but penalized 8)
+
+
+---
+
+#### N = Names of Players
+
+Max len: 128
+Valid char: (all)
+
+##### Spec
+
+- The names of the players in the specific sequence: North+South:West+East.
+- Partners are separated by a plus sign (+) and pairs by a colon (:).
+- West is given before East to keep the left-right relationship.
+- Names may be first or last names (or both) or even non-human names such as computers.
+- If a name is unknown, just leave it empty.
+- This may be followed by a second colon and the room (C = Closed, O = Open) or table number (1-250), and optionally a third colon followed by any other information.
+
+##### Examples
+
+- [x] - N Wolff+Hamman:Stansby+Martel
+- [x] - N Soloway (Soloway was North)
+- [ ] - N :Jan+Joe:O (Jan and Joe E-W in Open Room)
+- [ ] - N :+Norman Kay:6 (Norman Kay East Table 6)
+- [ ] - N +Roth:GIB 4.0 (Roth South, computer West)

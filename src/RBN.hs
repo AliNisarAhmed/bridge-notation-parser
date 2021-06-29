@@ -14,11 +14,78 @@ import Text.Megaparsec.Debug (dbg)
 
 type Parser = Parsec Void Text
 
+data Direction
+  = North
+  | South
+  | East
+  | West
+  deriving (Eq, Show)
+
+data Player = Player {direction :: Direction, name :: Text}
+  deriving (Eq, Show)
+
+data Room
+  = Open
+  | Closed
+  deriving (Eq, Show)
+
+---- Player Names Parser
+
+data Players = Players
+  { north :: Maybe Player,
+    south :: Maybe Player,
+    east :: Maybe Player,
+    west :: Maybe Player,
+    tableNumber :: Maybe Int,
+    room :: Maybe Room,
+    additionalInfo :: Maybe Text
+  }
+  deriving (Eq, Show)
+
+playersParser :: Parser Players
+playersParser = do
+  MPC.char 'N'
+  MPC.space1
+  (n, s, w, e) <- parsePlayers
+  t <- parseTable
+  r <- parseRoom
+  additional <- parseAdditional
+  pure $ Players n s w e t r additional
+  where
+    parsePlayers :: Parser (Maybe Player, Maybe Player, Maybe Player, Maybe Player)
+    parsePlayers = do
+      n <- MP.optional $ MP.someTill MPCL.charLiteral (MP.try colon <|> plusSign <|> MPC.newline)
+      s <- MP.optional $ MP.someTill MPCL.charLiteral colon
+      w <- MP.optional $ MP.someTill MPCL.charLiteral (MP.try plusSign <|> MPC.newline)
+      e <- MP.optional $ MP.someTill MPCL.charLiteral (MP.try MPC.newline <|> colon)
+      let north = Player North <$> (T.pack <$> n)
+          south = Player South <$> (T.pack <$> s)
+          east = Player East <$> (T.pack <$> e)
+          west = Player West <$> (T.pack <$> w)
+      pure (north, south, west, east)
+      where
+        plusSign = MPC.char '+'
+        colon = MPC.char ':'
+    parseTable :: Parser (Maybe Int)
+    parseTable = pure Nothing -- TODO
+    parseRoom :: Parser (Maybe Room)
+    parseRoom =
+      MP.optional
+        ( MP.try do
+            MPC.char 'O'
+            pure Open
+            <|> do
+              MPC.char 'C'
+              pure Closed -- TODO
+        )
+    parseAdditional :: Parser (Maybe Text)
+    parseAdditional = pure Nothing -- TODO
+
 ---- Team Name Parser
 
 data Teams = Teams
-  { names :: (Text, Text)
-  , scores :: Maybe (Double, Double)
+  { names :: (Text, Text),
+    scores :: Maybe (Double, Double)
   }
   deriving (Eq, Show)
 
@@ -42,7 +109,6 @@ teamsParser = do
       s2 <- MP.try MPCL.float <|> MPCL.decimal
       MPC.newline
       pure (s1, s2)
-
 
 ---- Scoring Parser
 
