@@ -54,18 +54,26 @@ playersParser = do
   where
     parsePlayers :: Parser (Maybe Player, Maybe Player, Maybe Player, Maybe Player)
     parsePlayers = do
-      n <- MP.optional $ MP.someTill MPCL.charLiteral (MP.try colon <|> plusSign <|> MPC.newline)
-      s <- MP.optional $ MP.someTill MPCL.charLiteral colon
-      w <- MP.optional $ MP.someTill MPCL.charLiteral (MP.try plusSign <|> MPC.newline)
-      e <- MP.optional $ MP.someTill MPCL.charLiteral (MP.try MPC.newline <|> colon)
-      let north = Player North <$> (T.pack <$> n)
-          south = Player South <$> (T.pack <$> s)
-          east = Player East <$> (T.pack <$> e)
-          west = Player West <$> (T.pack <$> w)
+      (n, s) <- parsePair
+      (w, e) <- parsePair
+      let north = Player North <$> n
+          south = Player South <$> s
+          east = Player East <$> e
+          west = Player West <$> w
       pure (north, south, west, east)
       where
-        plusSign = MPC.char '+'
-        colon = MPC.char ':'
+        parsePair = do
+          n <- MP.optional $ MP.takeWhile1P Nothing (not . isPlayerSeparator)
+          MP.optional $ MP.oneOf playerSeparator
+          s <- MP.optional $ MP.takeWhile1P Nothing (not . isPairSeparator)
+          MP.optional $ MP.oneOf pairSeparator
+          pure (n, s)
+        playerSeparator :: [Char]
+        playerSeparator = ['+', '\n']
+        isPlayerSeparator = (`elem` playerSeparator)
+        pairSeparator :: [Char]
+        pairSeparator = [':', '\n']
+        isPairSeparator = (`elem` (":\n" :: [Char]))
     parseTable :: Parser (Maybe Int)
     parseTable = pure Nothing -- TODO
     parseRoom :: Parser (Maybe Room)
