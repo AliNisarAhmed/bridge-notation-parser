@@ -63,9 +63,16 @@ main = hspec do
 testParsePlayerWithRooms :: IO ()
 testParsePlayerWithRooms = do
   let i1 = "N :Jan+Joe:O\n"
+      i2 = "N :+Norman Kay:6\n"
+      i3 = "N +Roth:GIB 4.0\n"
       west = Just $ Player West "Jan"
       east = Just $ Player East "Joe"
+      east2 = Just $ Player East "Norman Kay"
+      south = Just $ Player South "Roth"
+      west2 = Just $ Player West "GIB 4.0"
   MP.parse playersParser "" i1 `shouldParse` Players Nothing Nothing west east Nothing (Just Open) Nothing
+  MP.parse playersParser "" i2 `shouldParse` Players Nothing Nothing Nothing east2 (Just 6) Nothing Nothing
+  MP.parse playersParser "" i3 `shouldParse` Players Nothing south west2 Nothing Nothing Nothing Nothing
 
 testParseNorthOnly :: IO ()
 testParseNorthOnly = do
@@ -76,12 +83,15 @@ testParseNorthOnly = do
 testParseFourPlayers :: IO ()
 testParseFourPlayers = do
   let i1 = "N Wolff+Hamman:Stansby+Martel\n"
+      i2 = "N Wolff+Hamman:Stansby+Martel:O:US Open\n"
+      i3 = "N Wolff+Hamman:Stansby+Martel:6:US National Trials\n"
       p1 = Just $ Player North "Wolff"
       p2 = Just $ Player South "Hamman"
       p3 = Just $ Player West "Stansby"
       p4 = Just $ Player East "Martel"
   MP.parse playersParser "" i1 `shouldParse` Players p1 p2 p3 p4 Nothing Nothing Nothing
-
+  MP.parse playersParser "" i2 `shouldParse` Players p1 p2 p3 p4 Nothing (Just Open) (Just "US Open")
+  MP.parse playersParser "" i3 `shouldParse` Players p1 p2 p3 p4 (Just 6) Nothing (Just "US National Trials")
 
 testTeamNamesWithScoresParser :: IO ()
 testTeamNamesWithScoresParser = do
@@ -90,7 +100,8 @@ testTeamNamesWithScoresParser = do
       i3 = "K France:Spain::-5\n"
   MP.parse teamsParser "" i1 `shouldParse` Teams ("Italy", "USA1") (Just (999, 22))
   MP.parse teamsParser "" i2 `shouldParse` Teams ("Iceland", "Bulgaria") (Just (76.33, 91.5))
-  -- MP.parse teamsParser "" i3 `shouldParse` Teams ("France", "Spain") (Just (0, -5))
+
+-- MP.parse teamsParser "" i3 `shouldParse` Teams ("France", "Spain") (Just (0, -5))
 
 testTeamNamesWithoutScoresParser :: IO ()
 testTeamNamesWithoutScoresParser = do

@@ -64,18 +64,18 @@ playersParser = do
       where
         parsePair = do
           n <- MP.optional $ MP.takeWhile1P Nothing (not . isPlayerSeparator)
-          MP.optional $ MP.oneOf playerSeparator
+          MP.optional $ MPC.char '+'
           s <- MP.optional $ MP.takeWhile1P Nothing (not . isPairSeparator)
-          MP.optional $ MP.oneOf pairSeparator
+          MP.optional $ MPC.char ':'
           pure (n, s)
         playerSeparator :: [Char]
-        playerSeparator = ['+', '\n']
+        playerSeparator = ['+', '\n', ':']
         isPlayerSeparator = (`elem` playerSeparator)
         pairSeparator :: [Char]
         pairSeparator = [':', '\n']
-        isPairSeparator = (`elem` (":\n" :: [Char]))
+        isPairSeparator = (`elem` pairSeparator)
     parseTable :: Parser (Maybe Int)
-    parseTable = pure Nothing -- TODO
+    parseTable = MP.optional MPCL.decimal
     parseRoom :: Parser (Maybe Room)
     parseRoom =
       MP.optional
@@ -87,7 +87,11 @@ playersParser = do
               pure Closed -- TODO
         )
     parseAdditional :: Parser (Maybe Text)
-    parseAdditional = pure Nothing -- TODO
+    parseAdditional = MP.optional do
+      MPC.char ':'
+      s <- MP.takeWhile1P Nothing (/= '\n')
+      MPC.newline
+      pure s
 
 ---- Team Name Parser
 

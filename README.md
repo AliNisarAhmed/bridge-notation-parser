@@ -242,7 +242,9 @@ Valid char: (all)
 ##### Examples
 
 - [x] - N Wolff+Hamman:Stansby+Martel
+- [x] - N Wolff+Hamman:Stansby+Martel:O:US Open
+- [x] - N Wolff+Hamman:Stansby+Martel:6:US National Trials
 - [x] - N Soloway (Soloway was North)
-- [ ] - N :Jan+Joe:O (Jan and Joe E-W in Open Room)
-- [ ] - N :+Norman Kay:6 (Norman Kay East Table 6)
-- [ ] - N +Roth:GIB 4.0 (Roth South, computer West)
+- [x] - N :Jan+Joe:O (Jan and Joe E-W in Open Room)
+- [x] - N :+Norman Kay:6 (Norman Kay East Table 6)
+- [x] - N +Roth:GIB 4.0 (Roth South, computer West)
