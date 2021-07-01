@@ -59,6 +59,22 @@ main = hspec do
       testParseNorthOnly
     it "parse player names with room info" do
       testParsePlayerWithRooms
+  describe "Test Board Number Parser" do
+    it "should successfully parse board number with or without session" do
+      testBoardNumberParser
+
+testBoardNumberParser :: IO ()
+testBoardNumberParser = do
+  let i1 = "B 7\n"
+      i2 = "B 15:C\n"
+      i3 = "B 10:7X01\n"
+      i4 = "B 9:97-7-542\n"
+      i5 = "B xy\n"
+  MP.parse boardNumberParser "" i1 `shouldParse` BoardNumber "7" Nothing
+  MP.parse boardNumberParser "" i2 `shouldParse` BoardNumber "15" (Just "C")
+  MP.parse boardNumberParser "" i3 `shouldParse` BoardNumber "10" (Just "7X01")
+  MP.parse boardNumberParser "" i4 `shouldParse` BoardNumber "9" (Just "97-7-542")
+  MP.parse boardNumberParser "" i5 `shouldParse` BoardNumber "xy" Nothing
 
 testParsePlayerWithRooms :: IO ()
 testParsePlayerWithRooms = do

@@ -29,6 +29,31 @@ data Room
   | Closed
   deriving (Eq, Show)
 
+---- Board Number Parser
+
+data BoardNumber = BoardNumber {boardNumber :: Text, session :: Maybe Text}
+  deriving (Eq, Show)
+
+boardNumberParser :: Parser BoardNumber
+boardNumberParser = do
+  MPC.char 'B'
+  MPC.space1
+  bn <- parseBoardNumber
+  sn <- parseSession
+  pure $ BoardNumber bn sn
+  where
+    parseBoardNumber :: Parser Text
+    parseBoardNumber = do
+      n <- MP.takeWhile1P Nothing (not . isSeparator)
+      MP.optional $ MPC.char ':'
+      pure n
+    isSeparator = (`elem` [':', '\n'])
+    parseSession :: Parser (Maybe Text)
+    parseSession = do
+      s <- MP.optional $ MP.takeWhile1P Nothing (/= '\n')
+      MPC.newline
+      pure s
+
 ---- Player Names Parser
 
 data Players = Players

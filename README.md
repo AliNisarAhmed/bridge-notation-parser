@@ -248,3 +248,23 @@ Valid char: (all)
 - [x] - N :Jan+Joe:O (Jan and Joe E-W in Open Room)
 - [x] - N :+Norman Kay:6 (Norman Kay East Table 6)
 - [x] - N +Roth:GIB 4.0 (Roth South, computer West)
+
+---
+
+#### B = Board Number
+
+Max len: 24
+Valid char: (all)
+
+##### Spec
+
+- The board or sequence number of the deal — usually just a plain number, but any notation is acceptable.
+- Optionally, this may be followed by a separator (:) and a second number or notation, such as the section letter in a large tournament.
+
+##### Examples
+
+- [x] - B 7 (Board 7)
+- [x] - B 15:C (Board 15, Section C)
+- [x] - B 10:7X01 (Board 10, and RP numbering)
+- [ ] - B 9:97-7-542 (Board 9, and OKbridge number)
+- [ ] - B xy (Board xy)
