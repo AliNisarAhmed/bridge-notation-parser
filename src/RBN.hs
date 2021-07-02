@@ -1,11 +1,13 @@
 module RBN where
 
-import qualified Data.Text (Text)
+import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Read as TR
 import Data.Time
 import Data.Void
 import RIO
+import RIO.Partial (read)
+import qualified RIO.Vector as V
 import Text.Megaparsec (Parsec)
 import qualified Text.Megaparsec as MP
 import qualified Text.Megaparsec.Char as MPC
@@ -24,10 +26,123 @@ data Direction
 data Player = Player {direction :: Direction, name :: Text}
   deriving (Eq, Show)
 
-data Room
-  = Open
-  | Closed
+data MatchRoom
+  = OpenRoom
+  | ClosedRoom
   deriving (Eq, Show)
+
+data Suit
+  = Spades
+  | Hearts
+  | Diamonds
+  | Clubs
+  deriving (Eq, Ord, Show)
+
+data Rank
+  = Ace
+  | King
+  | Queen
+  | Jack
+  | Ten
+  | Nine
+  | Eight
+  | Seven
+  | Six
+  | Five
+  | Four
+  | Three
+  | Two
+  deriving (Eq, Ord, Show, Read)
+
+data Card = Card {suit :: Suit, rank :: Rank}
+  deriving (Eq, Ord, Show)
+
+data Hand = Hand
+  { spades :: Vector Card,
+    hearts :: Vector Card,
+    diamonds :: Vector Card,
+    clubs :: Vector Card
+  }
+  deriving (Eq, Ord, Show)
+
+data PlayerHand = PlayerHand Direction Hand
+  deriving (Eq, Show)
+
+data Deck = Deck
+  { north :: Hand,
+    east :: Hand,
+    south :: Hand,
+    west :: Hand
+  }
+  deriving (Eq, Show)
+
+---- Hands Parser
+
+handsParser :: Parser Deck
+handsParser = do
+  MPC.char 'H'
+  MPC.space1
+  startPlayer <- parseStartPlayer
+  h1 <- parseHand
+  h2 <- parseHand
+  h3 <- parseHand
+  h4 <- parseHand <|> pure emptyHand  -- TODO: replace empty hand with calculated last hand
+  MPC.newline
+  pure $ Deck h1 h2 h3 h4
+  where
+    parseStartPlayer :: Parser Direction
+    parseStartPlayer = do
+      c <- MP.oneOf ['N', 'S', 'E', 'W']
+      MPC.char ':'
+      pure $ charToDirection c
+    parseHand :: Parser Hand
+    parseHand = do
+      spades <- parseSuit Spades
+      hearts <- parseSuit Hearts
+      diamonds <- parseSuit Diamonds
+      clubs <- parseSuit Clubs
+      pure $ Hand spades hearts diamonds clubs
+    parseSuit :: Suit -> Parser (Vector Card)
+    parseSuit suit = do
+      s <- MP.takeWhileP Nothing isCard
+      MP.try $ MPC.char ':' <|> MPC.char '.'
+      pure $ makeHandSuit suit (T.unpack s)
+    isCard = (`elem` ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A'])
+
+makeHandSuit :: Suit -> [Char] -> Vector Card -- TODO: rename
+makeHandSuit s = V.fromList . map (Card s . charToRank)
+
+makeHand :: [Char] -> [Char] -> [Char] -> [Char] -> Hand
+makeHand s h d c =
+  Hand (makeHandSuit Spades s) (makeHandSuit Hearts h) (makeHandSuit Diamonds d) (makeHandSuit Clubs c)
+
+emptyHand :: Hand
+emptyHand = makeHand [] [] [] []
+
+charToDirection :: Char -> Direction
+charToDirection c =
+  case c of
+    'N' -> North
+    'S' -> South
+    'E' -> East
+    'W' -> West
+
+charToRank :: Char -> Rank
+charToRank c =
+  case c of
+    'A' -> Ace
+    'K' -> King
+    'Q' -> Queen
+    'J' -> Jack
+    'T' -> Ten
+    '9' -> Nine
+    '8' -> Eight
+    '7' -> Seven
+    '6' -> Six
+    '5' -> Five
+    '4' -> Four
+    '3' -> Three
+    '2' -> Two
 
 ---- Board Number Parser
 
@@ -62,7 +177,7 @@ data Players = Players
     east :: Maybe Player,
     west :: Maybe Player,
     tableNumber :: Maybe Int,
-    room :: Maybe Room,
+    room :: Maybe MatchRoom,
     additionalInfo :: Maybe Text
   }
   deriving (Eq, Show)
@@ -101,15 +216,15 @@ playersParser = do
         isPairSeparator = (`elem` pairSeparator)
     parseTable :: Parser (Maybe Int)
     parseTable = MP.optional MPCL.decimal
-    parseRoom :: Parser (Maybe Room)
+    parseRoom :: Parser (Maybe MatchRoom)
     parseRoom =
       MP.optional
         ( MP.try do
             MPC.char 'O'
-            pure Open
+            pure OpenRoom
             <|> do
               MPC.char 'C'
-              pure Closed -- TODO
+              pure ClosedRoom
         )
     parseAdditional :: Parser (Maybe Text)
     parseAdditional = MP.optional do

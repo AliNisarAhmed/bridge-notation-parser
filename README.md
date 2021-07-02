@@ -266,5 +266,30 @@ Valid char: (all)
 - [x] - B 7 (Board 7)
 - [x] - B 15:C (Board 15, Section C)
 - [x] - B 10:7X01 (Board 10, and RP numbering)
-- [ ] - B 9:97-7-542 (Board 9, and OKbridge number)
-- [ ] - B xy (Board xy)
+- [x] - B 9:97-7-542 (Board 9, and OKbridge number)
+- [x] - B xy (Board xy)
+
+---
+
+#### H = Hands
+
+Max len: 71
+Valid char: 23456789TJQKNSEWx:.;?
+
+##### Spec
+
+- The cards for each player, starting with the direction given and moving clockwise.
+- Each hand begins with a colon (:).
+- Suit holdings are given in descending order (SHDC) separated by a dot (.) and cards in descending rank (AKQJT98765432).
+
+- Hands do not necessarily have to form a complete deal.
+- Empty or incomplete hands are fine as long as no card is used twice, and no hand has more than 13 cards.
+- This is useful for storing single hands, paired hands (e.g., only E-W for bidding practice), bridge endings, single-suit layouts, etc.
+
+- For full deals, the fourth hand is redundant and may be omitted, but the initial colon must be present (else fourth hand would be assumed not to exist).
+- In other words, three full hands followed by a colon means “fourth hand gets the rest.”
+
+##### Examples
+
+- [x] - H W:873.A6.KT864.KQ8:96.T54.97.AJ9643:T542.K93.AQ53.52:
+- [ ] - H S:9.AK6.AKT982.K87:K7654.J73.Q65.T6:QT2.T94.J4.AQ953:

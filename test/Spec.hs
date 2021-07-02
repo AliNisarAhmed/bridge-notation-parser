@@ -3,6 +3,7 @@ module Main where
 import Data.Time
 import RBN
 import RIO
+import qualified RIO.Vector as V
 import Test.Hspec
 import Test.Hspec.Megaparsec
 import qualified Text.Megaparsec as MP
@@ -62,6 +63,19 @@ main = hspec do
   describe "Test Board Number Parser" do
     it "should successfully parse board number with or without session" do
       testBoardNumberParser
+  describe "Test Hands Parser" do
+    it "should parse full deck" do
+      testHandsParser
+
+testHandsParser :: IO ()
+testHandsParser = do
+  let i1 = "H W:873.A6.KT864.KQ8:96.T54.97.AJ9643:T542.K93.AQ53.52:\n"
+      northHand = makeHand ['8', '7', '3'] ['A', '6'] ['K', 'T', '8', '6', '4'] ['K', 'Q', '8']
+      eastHand = makeHand ['9', '6'] ['T', '5', '4'] ['9', '7'] ['A', 'J', '9', '6', '4', '3']
+      southHand = makeHand ['T', '5', '4', '2'] ['K', '9', '3'] ['A', 'Q', '5', '3'] ['5', '2']
+      westHand = emptyHand
+      result = Deck northHand eastHand southHand westHand
+  MP.parse handsParser "" i1 `shouldParse` result
 
 testBoardNumberParser :: IO ()
 testBoardNumberParser = do
@@ -86,7 +100,7 @@ testParsePlayerWithRooms = do
       east2 = Just $ Player East "Norman Kay"
       south = Just $ Player South "Roth"
       west2 = Just $ Player West "GIB 4.0"
-  MP.parse playersParser "" i1 `shouldParse` Players Nothing Nothing west east Nothing (Just Open) Nothing
+  MP.parse playersParser "" i1 `shouldParse` Players Nothing Nothing west east Nothing (Just OpenRoom) Nothing
   MP.parse playersParser "" i2 `shouldParse` Players Nothing Nothing Nothing east2 (Just 6) Nothing Nothing
   MP.parse playersParser "" i3 `shouldParse` Players Nothing south west2 Nothing Nothing Nothing Nothing
 
@@ -106,7 +120,7 @@ testParseFourPlayers = do
       p3 = Just $ Player West "Stansby"
       p4 = Just $ Player East "Martel"
   MP.parse playersParser "" i1 `shouldParse` Players p1 p2 p3 p4 Nothing Nothing Nothing
-  MP.parse playersParser "" i2 `shouldParse` Players p1 p2 p3 p4 Nothing (Just Open) (Just "US Open")
+  MP.parse playersParser "" i2 `shouldParse` Players p1 p2 p3 p4 Nothing (Just OpenRoom) (Just "US Open")
   MP.parse playersParser "" i3 `shouldParse` Players p1 p2 p3 p4 (Just 6) Nothing (Just "US National Trials")
 
 testTeamNamesWithScoresParser :: IO ()
