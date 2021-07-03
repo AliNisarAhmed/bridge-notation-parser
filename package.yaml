@@ -16,6 +16,7 @@ dependencies:
   - megaparsec
   - text
   - time
+  - containers
 
 ghc-options:
   - -F -pgmF=record-dot-preprocessor

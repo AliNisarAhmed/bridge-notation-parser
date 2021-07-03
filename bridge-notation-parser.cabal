@@ -1,8 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.34.4.
+-- This file has been generated from package.yaml by hpack version 0.33.0.
 --
 -- see: https://github.com/sol/hpack
+--
+-- hash: 24440fa62f24fe92fb6eeb653d9adb5bb033c7e87f73aaf392d5a82441b4c96b
 
 name:           bridge-notation-parser
 version:        0.0.0
@@ -15,17 +17,11 @@ library
       Paths_bridge_notation_parser
   hs-source-dirs:
       src
-  default-extensions:
-      BlockArguments
-      DeriveAnyClass
-      DeriveGeneric
-      LambdaCase
-      NoImplicitPrelude
-      OverloadedStrings
-      StrictData
+  default-extensions: BlockArguments DeriveAnyClass DeriveGeneric LambdaCase NoImplicitPrelude OverloadedStrings StrictData
   ghc-options: -F -pgmF=record-dot-preprocessor
   build-depends:
       base
+    , containers
     , megaparsec
     , record-hasfield
     , rio
@@ -39,18 +35,12 @@ executable bnp
       Paths_bridge_notation_parser
   hs-source-dirs:
       app
-  default-extensions:
-      BlockArguments
-      DeriveAnyClass
-      DeriveGeneric
-      LambdaCase
-      NoImplicitPrelude
-      OverloadedStrings
-      StrictData
+  default-extensions: BlockArguments DeriveAnyClass DeriveGeneric LambdaCase NoImplicitPrelude OverloadedStrings StrictData
   ghc-options: -F -pgmF=record-dot-preprocessor -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base
     , bridge-notation-parser
+    , containers
     , megaparsec
     , record-hasfield
     , rio
@@ -65,18 +55,12 @@ test-suite bnp-test
       Paths_bridge_notation_parser
   hs-source-dirs:
       test
-  default-extensions:
-      BlockArguments
-      DeriveAnyClass
-      DeriveGeneric
-      LambdaCase
-      NoImplicitPrelude
-      OverloadedStrings
-      StrictData
+  default-extensions: BlockArguments DeriveAnyClass DeriveGeneric LambdaCase NoImplicitPrelude OverloadedStrings StrictData
   ghc-options: -F -pgmF=record-dot-preprocessor -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base
     , bridge-notation-parser
+    , containers
     , hspec
     , hspec-megaparsec
     , megaparsec

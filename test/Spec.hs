@@ -3,7 +3,6 @@ module Main where
 import Data.Time
 import RBN
 import RIO
-import qualified RIO.Vector as V
 import Test.Hspec
 import Test.Hspec.Megaparsec
 import qualified Text.Megaparsec as MP
@@ -70,10 +69,25 @@ main = hspec do
 testHandsParser :: IO ()
 testHandsParser = do
   let i1 = "H W:873.A6.KT864.KQ8:96.T54.97.AJ9643:T542.K93.AQ53.52:\n"
-      northHand = makeHand ['8', '7', '3'] ['A', '6'] ['K', 'T', '8', '6', '4'] ['K', 'Q', '8']
-      eastHand = makeHand ['9', '6'] ['T', '5', '4'] ['9', '7'] ['A', 'J', '9', '6', '4', '3']
-      southHand = makeHand ['T', '5', '4', '2'] ['K', '9', '3'] ['A', 'Q', '5', '3'] ['5', '2']
-      westHand = emptyHand
+      northHand =
+        makeHand
+          ['8', '7', '3']
+          ['A', '6']
+          ['K', 'T', '8', '6', '4']
+          ['K', 'Q', '8']
+      eastHand =
+        makeHand
+          ['9', '6']
+          ['T', '5', '4']
+          ['9', '7']
+          ['A', 'J', '9', '6', '4', '3']
+      southHand =
+        makeHand
+          ['T', '5', '4', '2']
+          ['K', '9', '3']
+          ['A', 'Q', '5', '3']
+          ['5', '2']
+      westHand = makeHand ['A', 'K', 'Q', 'J'] ['Q', 'J', '8', '7', '2'] ['J', '2'] ['T', '7']
       result = Deck northHand eastHand southHand westHand
   MP.parse handsParser "" i1 `shouldParse` result
 

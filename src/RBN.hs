@@ -1,5 +1,7 @@
 module RBN where
 
+import Data.Set (Set)
+import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Read as TR
@@ -7,7 +9,6 @@ import Data.Time
 import Data.Void
 import RIO
 import RIO.Partial (read)
-import qualified RIO.Vector as V
 import Text.Megaparsec (Parsec)
 import qualified Text.Megaparsec as MP
 import qualified Text.Megaparsec.Char as MPC
@@ -32,36 +33,36 @@ data MatchRoom
   deriving (Eq, Show)
 
 data Suit
-  = Spades
-  | Hearts
+  = Clubs
   | Diamonds
-  | Clubs
-  deriving (Eq, Ord, Show)
+  | Hearts
+  | Spades
+  deriving (Eq, Ord, Show, Bounded, Enum)
 
 data Rank
-  = Ace
-  | King
-  | Queen
-  | Jack
-  | Ten
-  | Nine
-  | Eight
-  | Seven
-  | Six
-  | Five
-  | Four
+  = Two
   | Three
-  | Two
-  deriving (Eq, Ord, Show, Read)
+  | Four
+  | Five
+  | Six
+  | Seven
+  | Eight
+  | Nine
+  | Ten
+  | Jack
+  | Queen
+  | King
+  | Ace
+  deriving (Eq, Ord, Show, Read, Bounded, Enum)
 
 data Card = Card {suit :: Suit, rank :: Rank}
   deriving (Eq, Ord, Show)
 
 data Hand = Hand
-  { spades :: Vector Card,
-    hearts :: Vector Card,
-    diamonds :: Vector Card,
-    clubs :: Vector Card
+  { spades :: Set Card,
+    hearts :: Set Card,
+    diamonds :: Set Card,
+    clubs :: Set Card
   }
   deriving (Eq, Ord, Show)
 
@@ -86,7 +87,7 @@ handsParser = do
   h1 <- parseHand
   h2 <- parseHand
   h3 <- parseHand
-  h4 <- parseHand <|> pure emptyHand  -- TODO: replace empty hand with calculated last hand
+  h4 <- parseHand <|> pure (generateFourthHand h1 h2 h3)
   MPC.newline
   pure $ Deck h1 h2 h3 h4
   where
@@ -102,15 +103,26 @@ handsParser = do
       diamonds <- parseSuit Diamonds
       clubs <- parseSuit Clubs
       pure $ Hand spades hearts diamonds clubs
-    parseSuit :: Suit -> Parser (Vector Card)
+    parseSuit :: Suit -> Parser (Set Card)
     parseSuit suit = do
       s <- MP.takeWhileP Nothing isCard
       MP.try $ MPC.char ':' <|> MPC.char '.'
       pure $ makeHandSuit suit (T.unpack s)
     isCard = (`elem` ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A'])
 
-makeHandSuit :: Suit -> [Char] -> Vector Card -- TODO: rename
-makeHandSuit s = V.fromList . map (Card s . charToRank)
+generateFullSuit :: Suit -> Set Card
+generateFullSuit s = Set.map (Card s) $ Set.fromList ([minBound .. maxBound] :: [Rank])
+
+generateFourthHand :: Hand -> Hand -> Hand -> Hand
+generateFourthHand (Hand s1 h1 d1 c1) (Hand s2 h2 d2 c2) (Hand s3 h3 d3 c3) =
+  let s4 = Set.difference (generateFullSuit Spades) (s1 `Set.union` s2 `Set.union` s3)
+      h4 = Set.difference (generateFullSuit Hearts) (h1 `Set.union` h2 `Set.union` h3)
+      d4 = Set.difference (generateFullSuit Diamonds) (d1 `Set.union` d2 `Set.union` d3)
+      c4 = Set.difference (generateFullSuit Clubs) (c1 `Set.union` c2 `Set.union` c3)
+  in Hand s4 h4 d4 c4
+
+makeHandSuit :: Suit -> [Char] -> Set Card -- TODO: rename
+makeHandSuit s = Set.fromList . map (Card s . charToRank)
 
 makeHand :: [Char] -> [Char] -> [Char] -> [Char] -> Hand
 makeHand s h d c =
