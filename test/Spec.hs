@@ -3,6 +3,7 @@ module Main where
 import Data.Time
 import RBN
 import RIO
+import qualified RIO.Map as Map
 import Test.Hspec
 import Test.Hspec.Megaparsec
 import qualified Text.Megaparsec as MP
@@ -114,19 +115,21 @@ testHandsParser = do
           ['7', '3']
           ['J', '4', '2']
       result1 =
-        Deck
-          (PlayerHand North northHand1)
-          (PlayerHand East eastHand1)
-          (PlayerHand South southHand1)
-          (PlayerHand West westHand1)
+        Map.fromList
+          [ (North, northHand1),
+            (East, eastHand1),
+            (South, southHand1),
+            (West, westHand1)
+          ]
       result2 =
-        Deck
-          (PlayerHand North northHand2)
-          (PlayerHand East eastHand2)
-          (PlayerHand South southHand2)
-          (PlayerHand West westHand2)
+        Map.fromList
+          [ (North, northHand2),
+            (East, eastHand2),
+            (South, southHand2),
+            (West, westHand2)
+          ]
   MP.parse handsParser "" i1 `shouldParse` result1
-  -- MP.parse handsParser "" i2 `shouldParse` result2
+  MP.parse handsParser "" i2 `shouldParse` result2
 
 testBoardNumberParser :: IO ()
 testBoardNumberParser = do

@@ -8,8 +8,8 @@ import qualified Data.Text.Read as TR
 import Data.Time
 import Data.Void
 import RIO
-import RIO.Partial (read, succ)
 import qualified RIO.Map as Map
+import RIO.Partial (read, succ)
 import Text.Megaparsec (Parsec)
 import qualified Text.Megaparsec as MP
 import qualified Text.Megaparsec.Char as MPC
@@ -23,7 +23,7 @@ data Direction
   | East
   | South
   | West
-  deriving (Eq, Show, Enum, Bounded, CyclicEnum)
+  deriving (Eq, Show, Enum, Bounded, CyclicEnum, Ord)
 
 data Player = Player {direction :: Direction, name :: Text}
   deriving (Eq, Show)
@@ -70,13 +70,7 @@ data Hand = Hand
 data PlayerHand = PlayerHand Direction Hand
   deriving (Eq, Show)
 
-data Deck = Deck
-  { north :: PlayerHand,
-    east :: PlayerHand,
-    south :: PlayerHand,
-    west :: PlayerHand
-  }
-  deriving (Eq, Show)
+type Deck = Map Direction Hand
 
 class (Eq a, Enum a, Bounded a) => CyclicEnum a where
   next :: a -> a
@@ -97,9 +91,13 @@ handsParser = do
   h1 <- parseHand
   h2 <- parseHand
   h3 <- parseHand
-  h4 <- parseHand <|> pure (generateFourthHand h1 h2 h3)
+  temp <- parseHand
+  let h4 =
+        if isEmptyHand temp
+          then generateFourthHand h1 h2 h3
+          else h4
   MPC.newline
-  pure $ Deck (PlayerHand startPlayer h1) (PlayerHand player2 h2) (PlayerHand player3 h3) (PlayerHand player4 h4)
+  pure $ Map.fromList [(startPlayer, h1), (player2, h2), (player3, h3), (player4, h4)]
   where
     parseStartPlayer :: Parser Direction
     parseStartPlayer = do
@@ -130,6 +128,9 @@ generateFourthHand (Hand s1 h1 d1 c1) (Hand s2 h2 d2 c2) (Hand s3 h3 d3 c3) =
       d4 = Set.difference (generateFullSuit Diamonds) (d1 `Set.union` d2 `Set.union` d3)
       c4 = Set.difference (generateFullSuit Clubs) (c1 `Set.union` c2 `Set.union` c3)
    in Hand s4 h4 d4 c4
+
+isEmptyHand :: Hand -> Bool
+isEmptyHand (Hand s h d c) = Set.null s && Set.null h && Set.null d && Set.null c
 
 makeHandSuit :: Suit -> [Char] -> Set Card -- TODO: rename
 makeHandSuit s = Set.fromList . map (Card s . charToRank)
