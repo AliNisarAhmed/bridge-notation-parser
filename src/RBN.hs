@@ -8,7 +8,8 @@ import qualified Data.Text.Read as TR
 import Data.Time
 import Data.Void
 import RIO
-import RIO.Partial (read)
+import RIO.Partial (read, succ)
+import qualified RIO.Map as Map
 import Text.Megaparsec (Parsec)
 import qualified Text.Megaparsec as MP
 import qualified Text.Megaparsec.Char as MPC
@@ -19,10 +20,10 @@ type Parser = Parsec Void Text
 
 data Direction
   = North
-  | South
   | East
+  | South
   | West
-  deriving (Eq, Show)
+  deriving (Eq, Show, Enum, Bounded, CyclicEnum)
 
 data Player = Player {direction :: Direction, name :: Text}
   deriving (Eq, Show)
@@ -70,12 +71,18 @@ data PlayerHand = PlayerHand Direction Hand
   deriving (Eq, Show)
 
 data Deck = Deck
-  { north :: Hand,
-    east :: Hand,
-    south :: Hand,
-    west :: Hand
+  { north :: PlayerHand,
+    east :: PlayerHand,
+    south :: PlayerHand,
+    west :: PlayerHand
   }
   deriving (Eq, Show)
+
+class (Eq a, Enum a, Bounded a) => CyclicEnum a where
+  next :: a -> a
+  next v
+    | v == maxBound = minBound
+    | otherwise = succ v
 
 ---- Hands Parser
 
@@ -84,20 +91,23 @@ handsParser = do
   MPC.char 'H'
   MPC.space1
   startPlayer <- parseStartPlayer
+  let player2 = next startPlayer
+      player3 = next player2
+      player4 = next player3
   h1 <- parseHand
   h2 <- parseHand
   h3 <- parseHand
   h4 <- parseHand <|> pure (generateFourthHand h1 h2 h3)
   MPC.newline
-  pure $ Deck h1 h2 h3 h4
+  pure $ Deck (PlayerHand startPlayer h1) (PlayerHand player2 h2) (PlayerHand player3 h3) (PlayerHand player4 h4)
   where
     parseStartPlayer :: Parser Direction
     parseStartPlayer = do
       c <- MP.oneOf ['N', 'S', 'E', 'W']
-      MPC.char ':'
       pure $ charToDirection c
     parseHand :: Parser Hand
     parseHand = do
+      MPC.char ':'
       spades <- parseSuit Spades
       hearts <- parseSuit Hearts
       diamonds <- parseSuit Diamonds
@@ -106,7 +116,7 @@ handsParser = do
     parseSuit :: Suit -> Parser (Set Card)
     parseSuit suit = do
       s <- MP.takeWhileP Nothing isCard
-      MP.try $ MPC.char ':' <|> MPC.char '.'
+      MP.optional $ MPC.char '.'
       pure $ makeHandSuit suit (T.unpack s)
     isCard = (`elem` ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A'])
 
@@ -119,7 +129,7 @@ generateFourthHand (Hand s1 h1 d1 c1) (Hand s2 h2 d2 c2) (Hand s3 h3 d3 c3) =
       h4 = Set.difference (generateFullSuit Hearts) (h1 `Set.union` h2 `Set.union` h3)
       d4 = Set.difference (generateFullSuit Diamonds) (d1 `Set.union` d2 `Set.union` d3)
       c4 = Set.difference (generateFullSuit Clubs) (c1 `Set.union` c2 `Set.union` c3)
-  in Hand s4 h4 d4 c4
+   in Hand s4 h4 d4 c4
 
 makeHandSuit :: Suit -> [Char] -> Set Card -- TODO: rename
 makeHandSuit s = Set.fromList . map (Card s . charToRank)
