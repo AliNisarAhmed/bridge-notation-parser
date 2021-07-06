@@ -67,9 +67,6 @@ data Hand = Hand
   }
   deriving (Eq, Ord, Show)
 
-data PlayerHand = PlayerHand Direction Hand
-  deriving (Eq, Show)
-
 type Deck = Map Direction Hand
 
 class (Eq a, Enum a, Bounded a) => CyclicEnum a where
@@ -92,11 +89,11 @@ handsParser = do
   h2 <- parseHand
   h3 <- parseHand
   temp <- parseHand
-  let h4 =
-        if isEmptyHand temp
-          then generateFourthHand h1 h2 h3
-          else h4
   MPC.newline
+  let h4 =
+        if isPartialDeal h1 h2 h3
+          then temp
+          else generateFourthHand h1 h2 h3
   pure $ Map.fromList [(startPlayer, h1), (player2, h2), (player3, h3), (player4, h4)]
   where
     parseStartPlayer :: Parser Direction
@@ -105,7 +102,7 @@ handsParser = do
       pure $ charToDirection c
     parseHand :: Parser Hand
     parseHand = do
-      MPC.char ':'
+      MP.optional $ MPC.char ':'
       spades <- parseSuit Spades
       hearts <- parseSuit Hearts
       diamonds <- parseSuit Diamonds
@@ -128,6 +125,14 @@ generateFourthHand (Hand s1 h1 d1 c1) (Hand s2 h2 d2 c2) (Hand s3 h3 d3 c3) =
       d4 = Set.difference (generateFullSuit Diamonds) (d1 `Set.union` d2 `Set.union` d3)
       c4 = Set.difference (generateFullSuit Clubs) (c1 `Set.union` c2 `Set.union` c3)
    in Hand s4 h4 d4 c4
+
+isPartialDeal :: Hand -> Hand -> Hand -> Bool
+isPartialDeal h1 h2 h3 =
+  (isEmptyHand h1 || isEmptyHand h2 || isEmptyHand h3)
+    || (numCardsInHand h1 < 13)
+
+numCardsInHand :: Hand -> Int
+numCardsInHand (Hand s h d c) = Set.size s + Set.size h + Set.size d + Set.size c
 
 isEmptyHand :: Hand -> Bool
 isEmptyHand (Hand s h d c) = Set.null s && Set.null h && Set.null d && Set.null c
