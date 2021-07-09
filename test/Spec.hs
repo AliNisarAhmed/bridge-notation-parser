@@ -70,19 +70,57 @@ main = hspec do
       testHandsWithVoids
     it "should successfully parse when only pair hands are given" do
       testParsePairHands
+    it "should parse only one hand given" do
+      testSingleHandDeals
+    it "should successfully parse partial deals / end positions" do
+      testPartialDeals
+    it "should successfully parse partial single suit deals" do
+      testSingleSuitPartialDeals
+
+testSingleSuitPartialDeals :: IO ()
+testSingleSuitPartialDeals = do
+  let i1 = "H W:43:KJ2:Q976:AT85\n"
+      westHand1 = makeHand "43" "" "" ""
+      northHand1 = makeHand "KJ2" "" "" ""
+      eastHand1 = makeHand "Q976" "" "" ""
+      southHand1 = makeHand "AT85" "" "" ""
+      result1 = Map.fromList [(North, northHand1), (East, eastHand1), (South, southHand1), (West, westHand1)]
+  MP.parse handsParser "" i1 `shouldParse` result1
+
+
+
+testPartialDeals :: IO ()
+testPartialDeals = do
+  let i1 = "H W:K9.K9.9:3.A3.Q.4:Q82..J.A:A7.7.K8\n"
+      westHand1 = makeHand "K9" "K9" "9" ""
+      northHand1 = makeHand "3" "A3" "Q" "4"
+      eastHand1 = makeHand "Q82" "" "J" "A"
+      southHand1 = makeHand "A7" "7" "K8" ""
+      result1 = Map.fromList [(North, northHand1), (East, eastHand1), (South, southHand1), (West, westHand1)]
+  MP.parse handsParser "" i1 `shouldParse` result1
+
+testSingleHandDeals :: IO ()
+testSingleHandDeals = do
+  let i1 = "H E:T4.8642.AKT8.K65\n"
+      northHand1 = emptyHand
+      eastHand1 = makeHand "T4" "8642" "AKT8" "K65"
+      southHand1 = emptyHand
+      westHand1 = emptyHand
+      result1 = Map.fromList [(North, northHand1), (East, eastHand1), (South, southHand1), (West, westHand1)]
+  MP.parse handsParser "" i1 `shouldParse` result1
 
 testParsePairHands :: IO ()
 testParsePairHands = do
   let i1 = "H N:AKQ72..AKQ72.753::.AKQ72.753.AKQ72\n"
       i2 = "H W:AKQ72..AKQ72.753::.AKQ72.753.AKQ72\n"
       northHand1 = makeHand "AKQ72" "" "AKQ72" "753"
-      eastHand1 = makeHand "" "" "" ""
+      eastHand1 = emptyHand
       southHand1 = makeHand "" "AKQ72" "753" "AKQ72"
-      westHand1 = makeHand "" "" "" ""
+      westHand1 = emptyHand
       westHand2 = makeHand "AKQ72" "" "AKQ72" "753"
-      southHand2 = makeHand "" "" "" ""
+      southHand2 = emptyHand
       eastHand2 = makeHand "" "AKQ72" "753" "AKQ72"
-      northHand2 = makeHand "" "" "" ""
+      northHand2 = emptyHand
       result1 =
         Map.fromList [(North, northHand1), (East, eastHand1), (South, southHand1), (West, westHand1)]
       result2 =

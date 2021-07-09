@@ -296,3 +296,9 @@ Valid char: 23456789TJQKNSEWx:.;?
 - [x] - H N:AKQJT98765432...:.AKQJT98765432..:..AKQJT98765432.:
 
 - [x] - H N:AKQ72..AKQ72.753::.AKQ72.753.AKQ72
+
+- [x] - H E:T4.8642.AKT8.K65 (only the East hand)
+
+- [x] - H W:K9.K9.9:3.A3.Q.4:Q82..J.A:A7.7.K8 (Note that West and South are void in clubs, and East is void in hearts. )
+
+- [x] - H W:43:KJ2:Q976:AT85 (only the spade suit)
