@@ -289,6 +289,13 @@ Valid char: 23456789TJQKNSEWx:.;?
 - For full deals, the fourth hand is redundant and may be omitted, but the initial colon must be present (else fourth hand would be assumed not to exist).
 - In other words, three full hands followed by a colon means “fourth hand gets the rest.”
 
+#### Pseudo Cards (Not implemented)
+
+- Cards may be entered as 'x' to designate one of the lowest unassigned cards in that suit.
+
+- Cards may also be entered as '?' to designate an unknown rank. This might be useful for presentation purposes, but of course precludes any card play.
+
+
 ##### Examples
 
 - [x] - H W:873.A6.KT864.KQ8:96.T54.97.AJ9643:T542.K93.AQ53.52:
@@ -311,3 +318,44 @@ Valid char: 23456789TJQKNSEWx:.;?
 - [x] - H S:A876.A2.765.A876;32.KQJ9876543..9:QJT94..A432.5432;
 - [x] - H W;32.KQJ9876543..9:QJT94..A432.5432;K5.T.KQJT98.KQJT:
 - [x] - H N:QJT94..A432.5432;K5.T.KQJT98.KQJT:A876.A2.765.A876;
+
+
+----
+
+
+#### A = Auction
+
+Max len: 71
+Valid char: 123456789ABCDEHNPRSWXYZ:!?*^
+
+##### Spec
+
+- The dealer (NESW) and vulnerability (ZNEB?) then each bidding round is preceded by a colon.
+- No other separators are used in the sequence of calls.
+-  Normal calls are indicated as:
+   -  P = Pass
+   -  X = Double
+   -  R = Redouble
+   -  1C = One Club
+   -  3N = Three Notrump
+   -  A = All Pass.
+-  Also, the letter Y may be used as a query point (multiple times allowed) to mean “Your call?” as in a bidding quiz or poll.
+-  Partial or incomplete auctions are allowed (just stop writing).
+-  Complete auctions must end in A or PPP.
+-  Any call (except A and Y) may by followed by a notation:
+   -  ! = good
+   -  ? = poor
+   -  !! = very good
+   -  ?? = very poor
+   -  !? = speculative
+   -  ?! = questionable
+   -  * = conventional (no explanation follows)
+   -  ^1 = see Note 1.
+
+##### Examples
+
+- [ ] - A SZ:1SP2SP:4SA (South deals, none vul)
+- [ ] - A WE:A (West deals, E-W vul, passed out)
+- [ ] - A NB:1SXY (your call as South?)
+- [ ] - A S?:1SP2CP:2D (unknown vul, call sequence)
+- [ ] - A EB:3CP3N?P:PX!R^1A (East deals, both vul)

@@ -15,6 +15,7 @@ import qualified Text.Megaparsec as MP
 import qualified Text.Megaparsec.Char as MPC
 import qualified Text.Megaparsec.Char.Lexer as MPCL
 import Text.Megaparsec.Debug (dbg)
+import Text.Read (Read (readsPrec))
 
 type Parser = Parsec Void Text
 
@@ -87,13 +88,139 @@ class (Eq a, Enum a, Bounded a) => CyclicEnum a where
     | v == maxBound = minBound
     | otherwise = succ v
 
+---- Auction Parser
+
+data Vul
+  = NoneVul
+  | NorthSouthVul
+  | EastWestVul
+  | AllVul
+  | UnknownVul
+  deriving (Eq, Show)
+
+instance Read Vul where
+  readsPrec _ (x : xs) =
+    case x of
+      'Z' -> [(NoneVul, xs)]
+      'E' -> [(EastWestVul, xs)]
+      'N' -> [(NorthSouthVul, xs)]
+      _ -> [(UnknownVul, xs)]
+
+data Bid
+  = Pass
+  | Double
+  | Redouble
+  | Bid BidLevel BidSuit
+  deriving (Eq, Show)
+
+data BidLevel
+  = LevelOne
+  | LevelTwo
+  | LevelThree
+  | LevelFour
+  | LevelFive
+  | LevelSix
+  | LevelSeven
+  deriving (Eq, Ord, Show)
+
+instance Read BidLevel where
+  readsPrec _ (x : xs) =
+    case x of
+      '1' -> [(LevelOne, xs)]
+      '2' -> [(LevelTwo, xs)]
+      '3' -> [(LevelThree, xs)]
+      '4' -> [(LevelFour, xs)]
+      '5' -> [(LevelFive, xs)]
+      '6' -> [(LevelSix, xs)]
+      '7' -> [(LevelSeven, xs)]
+
+data BidSuit
+  = Trump Suit
+  | NoTrump
+  deriving (Eq, Show)
+
+data Auction = Auction
+  { dealer :: Direction,
+    vul :: Vul,
+    auction :: [Bid]
+  }
+  deriving (Eq, Show)
+
+auctionParser :: Parser Auction
+auctionParser = do
+  MPC.char 'A'
+  MPC.space1
+  dealer <- parseDirection
+  vul <- parseVul
+  bids <- parseBids
+  pure $ Auction dealer vul bids
+  where
+    parseVul :: Parser Vul
+    parseVul = parseNoneVul <|> parseEWVul <|> parseNSVul <|> parseBothVul <|> pure UnknownVul
+    parseNoneVul = MP.try do
+      MPC.char 'Z'
+      pure NoneVul
+    parseEWVul = MP.try do
+      MPC.char 'E'
+      pure EastWestVul
+    parseNSVul = MP.try do
+      MPC.char 'N'
+      pure NorthSouthVul
+    parseBothVul = MP.try do
+      MPC.char 'B'
+      pure AllVul
+    parseBids :: Parser [Bid]
+    parseBids = undefined
+    parseBidRound :: Parser [Bid]
+    parseBidRound = undefined
+    parseBid :: Parser Bid
+    parseBid = parsePass <|> parseDouble <|> parseRdbl <|> parseNoTrump <|> parseTrumpBid
+    parsePass = do
+      MPC.char 'P'
+      pure Pass
+    parseDouble = do
+      MPC.char 'X'
+      pure Double
+    parseRdbl = do
+      MPC.char 'R'
+      pure Redouble
+    parseNoTrump :: Parser Bid
+    parseNoTrump = do
+      level <- parseBidLevel
+      MPC.char 'N'
+      pure $ Bid level NoTrump
+    parseTrumpBid = do
+      level <- parseBidLevel
+      trump <- parseTrumpSuit
+      pure $ Bid level trump
+    parseTrumpSuit :: Parser BidSuit
+    parseTrumpSuit = charToBidSuit <$> MPCL.charLiteral
+    parseBidLevel :: Parser BidLevel
+    parseBidLevel = charToBidLevel <$> MPCL.charLiteral
+
+charToBidSuit :: Char -> BidSuit
+charToBidSuit 'S' = Trump Spades
+charToBidSuit 'H' = Trump Hearts
+charToBidSuit 'D' = Trump Diamonds
+charToBidSuit 'C' = Trump Clubs
+charToBidSuit 'N' = NoTrump
+
+charToBidLevel :: Char -> BidLevel
+charToBidLevel '1' = LevelOne
+charToBidLevel '2' = LevelTwo
+charToBidLevel '3' = LevelThree
+charToBidLevel '4' = LevelFour
+charToBidLevel '5' = LevelFive
+charToBidLevel '6' = LevelSix
+charToBidLevel '7' = LevelSeven
+
 ---- Hands Parser
 
 handsParser :: Parser Deck
 handsParser = do
   MPC.char 'H'
   MPC.space1
-  startPlayer <- parseStartPlayer
+  startPlayer <- parseDirection
   let player2 = next startPlayer
       player3 = next player2
       player4 = next player3
@@ -108,10 +235,6 @@ handsParser = do
           else generateFourthHand temp.handProps h1 h2 h3
   pure $ Map.fromList [(startPlayer, h1), (player2, h2), (player3, h3), (player4, h4)]
   where
-    parseStartPlayer :: Parser Direction
-    parseStartPlayer = do
-      c <- MP.oneOf ['N', 'S', 'E', 'W']
-      pure $ charToDirection c
     parseHand :: Parser Hand
     parseHand = do
       handVisib <- parseHandVisib
@@ -127,6 +250,11 @@ handsParser = do
       MP.optional $ MPC.char '.'
       pure $ makeHandSuit suit (T.unpack s)
     isCard = (`elem` ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A'])
+
+parseDirection :: Parser Direction
+parseDirection = do
+  c <- MP.oneOf ['N', 'S', 'E', 'W']
+  pure $ charToDirection c
 
 parseHandVisib :: Parser HandVisibility
 parseHandVisib =
