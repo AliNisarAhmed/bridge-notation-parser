@@ -76,26 +76,63 @@ main = hspec do
       testPartialDeals
     it "should successfully parse partial single suit deals" do
       testSingleSuitPartialDeals
+    it "should successfully parse hidden hands" do
+      testParseHiddenHands
+    it "should parse same deal correctly no matter starting player" do
+      testParseSameDealDifferentOrientation
+
+testParseSameDealDifferentOrientation :: IO ()
+testParseSameDealDifferentOrientation = do
+  let i1 = "H E;K5.T.KQJT98.KQJT:A876.A2.765.A876;32.KQJ9876543..9:\n"
+      i2 = "H S:A876.A2.765.A876;32.KQJ9876543..9:QJT94..A432.5432;\n"
+      i3 = "H W;32.KQJ9876543..9:QJT94..A432.5432;K5.T.KQJT98.KQJT:\n"
+      i4 = "H N:QJT94..A432.5432;K5.T.KQJT98.KQJT:A876.A2.765.A876;\n"
+      westHand1 = makeHand (defaultHandProps {visibility = Hidden}) "32" "KQJ9876543" "" "9"
+      northHand1 = makeHand defaultHandProps "QJT94" "" "A432" "5432"
+      eastHand1 = makeHand (defaultHandProps {visibility = Hidden}) "K5" "T" "KQJT98" "KQJT"
+      southHand1 = makeHand defaultHandProps "A876" "A2" "765" "A876"
+      result1 = Map.fromList [(North, northHand1), (East, eastHand1), (South, southHand1), (West, westHand1)]
+  MP.parse handsParser "" i1 `shouldParse` result1
+  MP.parse handsParser "" i2 `shouldParse` result1
+  MP.parse handsParser "" i3 `shouldParse` result1
+  MP.parse handsParser "" i4 `shouldParse` result1
+
+testParseHiddenHands :: IO ()
+testParseHiddenHands = do
+  let i1 = "H W:A875.632.76.8643;Q632.Q87.J842.Q2:KJT4.KJT4.AQ3.AJ;\n"
+      i2 = "H W:A8765.QT.K9.AT87;J42.AJ7632.J.632;QT3.85.Q86.KQJ54;\n"
+
+      westHand1 = makeHand defaultHandProps "A875" "632" "76" "8643"
+      northHand1 = makeHand (defaultHandProps {visibility = Hidden}) "Q632" "Q87" "J842" "Q2"
+      eastHand1 = makeHand defaultHandProps "KJT4" "KJT4" "AQ3" "AJ"
+      southHand1 = makeHand (defaultHandProps {visibility = Hidden}) "9" "A95" "KT95" "KT975"
+      result1 = Map.fromList [(North, northHand1), (East, eastHand1), (South, southHand1), (West, westHand1)]
+
+      westHand2 = makeHand defaultHandProps "A8765" "QT" "K9" "AT87"
+      northHand2 = makeHand (defaultHandProps {visibility = Hidden}) "J42" "AJ7632" "J" "632"
+      eastHand2 = makeHand (defaultHandProps {visibility = Hidden}) "QT3" "85" "Q86" "KQJ54"
+      southHand2 = makeHand (defaultHandProps {visibility = Hidden}) "K9" "K95" "AT75432" "9"
+      result2 =
+        Map.fromList [(North, northHand2), (East, eastHand2), (South, southHand2), (West, westHand2)]
+  MP.parse handsParser "" i1 `shouldParse` result1
 
 testSingleSuitPartialDeals :: IO ()
 testSingleSuitPartialDeals = do
   let i1 = "H W:43:KJ2:Q976:AT85\n"
-      westHand1 = makeHand "43" "" "" ""
-      northHand1 = makeHand "KJ2" "" "" ""
-      eastHand1 = makeHand "Q976" "" "" ""
-      southHand1 = makeHand "AT85" "" "" ""
+      westHand1 = makeHand defaultHandProps "43" "" "" ""
+      northHand1 = makeHand defaultHandProps "KJ2" "" "" ""
+      eastHand1 = makeHand defaultHandProps "Q976" "" "" ""
+      southHand1 = makeHand defaultHandProps "AT85" "" "" ""
       result1 = Map.fromList [(North, northHand1), (East, eastHand1), (South, southHand1), (West, westHand1)]
   MP.parse handsParser "" i1 `shouldParse` result1
-
-
 
 testPartialDeals :: IO ()
 testPartialDeals = do
   let i1 = "H W:K9.K9.9:3.A3.Q.4:Q82..J.A:A7.7.K8\n"
-      westHand1 = makeHand "K9" "K9" "9" ""
-      northHand1 = makeHand "3" "A3" "Q" "4"
-      eastHand1 = makeHand "Q82" "" "J" "A"
-      southHand1 = makeHand "A7" "7" "K8" ""
+      westHand1 = makeHand defaultHandProps "K9" "K9" "9" ""
+      northHand1 = makeHand defaultHandProps "3" "A3" "Q" "4"
+      eastHand1 = makeHand defaultHandProps "Q82" "" "J" "A"
+      southHand1 = makeHand defaultHandProps "A7" "7" "K8" ""
       result1 = Map.fromList [(North, northHand1), (East, eastHand1), (South, southHand1), (West, westHand1)]
   MP.parse handsParser "" i1 `shouldParse` result1
 
@@ -103,7 +140,7 @@ testSingleHandDeals :: IO ()
 testSingleHandDeals = do
   let i1 = "H E:T4.8642.AKT8.K65\n"
       northHand1 = emptyHand
-      eastHand1 = makeHand "T4" "8642" "AKT8" "K65"
+      eastHand1 = makeHand defaultHandProps "T4" "8642" "AKT8" "K65"
       southHand1 = emptyHand
       westHand1 = emptyHand
       result1 = Map.fromList [(North, northHand1), (East, eastHand1), (South, southHand1), (West, westHand1)]
@@ -113,13 +150,13 @@ testParsePairHands :: IO ()
 testParsePairHands = do
   let i1 = "H N:AKQ72..AKQ72.753::.AKQ72.753.AKQ72\n"
       i2 = "H W:AKQ72..AKQ72.753::.AKQ72.753.AKQ72\n"
-      northHand1 = makeHand "AKQ72" "" "AKQ72" "753"
+      northHand1 = makeHand defaultHandProps "AKQ72" "" "AKQ72" "753"
       eastHand1 = emptyHand
-      southHand1 = makeHand "" "AKQ72" "753" "AKQ72"
+      southHand1 = makeHand defaultHandProps "" "AKQ72" "753" "AKQ72"
       westHand1 = emptyHand
-      westHand2 = makeHand "AKQ72" "" "AKQ72" "753"
+      westHand2 = makeHand defaultHandProps "AKQ72" "" "AKQ72" "753"
       southHand2 = emptyHand
-      eastHand2 = makeHand "" "AKQ72" "753" "AKQ72"
+      eastHand2 = makeHand defaultHandProps "" "AKQ72" "753" "AKQ72"
       northHand2 = emptyHand
       result1 =
         Map.fromList [(North, northHand1), (East, eastHand1), (South, southHand1), (West, westHand1)]
@@ -131,10 +168,10 @@ testParsePairHands = do
 testHandsWithVoids :: IO ()
 testHandsWithVoids = do
   let i1 = "H N:AKQJT98765432...:.AKQJT98765432..:..AKQJT98765432.:\n"
-      northHand1 = makeHand "AKQJT98765432" "" "" ""
-      eastHand1 = makeHand "" "AKQJT98765432" "" ""
-      southHand1 = makeHand "" "" "AKQJT98765432" ""
-      westHand1 = makeHand "" "" "" "AKQJT98765432"
+      northHand1 = makeHand defaultHandProps "AKQJT98765432" "" "" ""
+      eastHand1 = makeHand defaultHandProps "" "AKQJT98765432" "" ""
+      southHand1 = makeHand defaultHandProps "" "" "AKQJT98765432" ""
+      westHand1 = makeHand defaultHandProps "" "" "" "AKQJT98765432"
       result1 =
         Map.fromList [(North, northHand1), (East, eastHand1), (South, southHand1), (West, westHand1)]
   MP.parse handsParser "" i1 `shouldParse` result1
@@ -144,21 +181,21 @@ testHandsParser = do
   let i1 = "H W:873.A6.KT864.KQ8:96.T54.97.AJ9643:T542.K93.AQ53.52:\n"
       i2 = "H S:9.AK6.AKT982.K87:K7654.J73.Q65.T6:QT2.T94.J4.AQ953:\n"
       westHand1 =
-        makeHand "873" "A6" "KT864" "KQ8"
+        makeHand defaultHandProps "873" "A6" "KT864" "KQ8"
       northHand1 =
-        makeHand "96" "T54" "97" "AJ9643"
+        makeHand defaultHandProps "96" "T54" "97" "AJ9643"
       eastHand1 =
-        makeHand "T542" "K93" "AQ53" "52"
+        makeHand defaultHandProps "T542" "K93" "AQ53" "52"
       southHand1 =
-        makeHand "AKQJ" "QJ872" "J2" "T7"
+        makeHand defaultHandProps "AKQJ" "QJ872" "J2" "T7"
       southHand2 =
-        makeHand "9" "AK6" "AKT982" "K87"
+        makeHand defaultHandProps "9" "AK6" "AKT982" "K87"
       westHand2 =
-        makeHand "K7654" "J73" "Q65" "T6"
+        makeHand defaultHandProps "K7654" "J73" "Q65" "T6"
       northHand2 =
-        makeHand "QT2" "T94" "J4" "AQ953"
+        makeHand defaultHandProps "QT2" "T94" "J4" "AQ953"
       eastHand2 =
-        makeHand "AJ83" "Q852" "73" "J42"
+        makeHand defaultHandProps "AJ83" "Q852" "73" "J42"
       result1 =
         Map.fromList
           [ (North, northHand1),

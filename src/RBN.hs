@@ -59,8 +59,20 @@ data Rank
 data Card = Card {suit :: Suit, rank :: Rank}
   deriving (Eq, Ord, Show)
 
+data HandProps = HandProps {visibility :: HandVisibility}
+  deriving (Eq, Show, Ord)
+
+data HandVisibility
+  = Hidden
+  | Shown
+  deriving (Eq, Show, Ord)
+
+defaultHandProps :: HandProps
+defaultHandProps = HandProps Shown
+
 data Hand = Hand
-  { spades :: Set Card,
+  { handProps :: HandProps,
+    spades :: Set Card,
     hearts :: Set Card,
     diamonds :: Set Card,
     clubs :: Set Card
@@ -93,7 +105,7 @@ handsParser = do
   let h4 =
         if isPartialDeal h1 h2 h3
           then temp
-          else generateFourthHand h1 h2 h3
+          else generateFourthHand temp.handProps h1 h2 h3
   pure $ Map.fromList [(startPlayer, h1), (player2, h2), (player3, h3), (player4, h4)]
   where
     parseStartPlayer :: Parser Direction
@@ -102,12 +114,13 @@ handsParser = do
       pure $ charToDirection c
     parseHand :: Parser Hand
     parseHand = do
-      MP.optional $ MPC.char ':'
+      handVisib <- parseHandVisib
+      -- MP.optional $ MPC.char ':'
       spades <- parseSuit Spades
       hearts <- parseSuit Hearts
       diamonds <- parseSuit Diamonds
       clubs <- parseSuit Clubs
-      pure $ Hand spades hearts diamonds clubs
+      pure $ Hand (HandProps handVisib) spades hearts diamonds clubs
     parseSuit :: Suit -> Parser (Set Card)
     parseSuit suit = do
       s <- MP.takeWhileP Nothing isCard
@@ -115,16 +128,28 @@ handsParser = do
       pure $ makeHandSuit suit (T.unpack s)
     isCard = (`elem` ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A'])
 
+parseHandVisib :: Parser HandVisibility
+parseHandVisib =
+  MP.try
+    ( do
+        MPC.char ';'
+        pure Hidden
+    )
+    <|> ( do
+            MP.optional $ MPC.char ':'
+            pure Shown
+        )
+
 generateFullSuit :: Suit -> Set Card
 generateFullSuit s = Set.map (Card s) $ Set.fromList ([minBound .. maxBound] :: [Rank])
 
-generateFourthHand :: Hand -> Hand -> Hand -> Hand
-generateFourthHand (Hand s1 h1 d1 c1) (Hand s2 h2 d2 c2) (Hand s3 h3 d3 c3) =
+generateFourthHand :: HandProps -> Hand -> Hand -> Hand -> Hand
+generateFourthHand props (Hand _ s1 h1 d1 c1) (Hand _ s2 h2 d2 c2) (Hand _ s3 h3 d3 c3) =
   let s4 = Set.difference (generateFullSuit Spades) (s1 `Set.union` s2 `Set.union` s3)
       h4 = Set.difference (generateFullSuit Hearts) (h1 `Set.union` h2 `Set.union` h3)
       d4 = Set.difference (generateFullSuit Diamonds) (d1 `Set.union` d2 `Set.union` d3)
       c4 = Set.difference (generateFullSuit Clubs) (c1 `Set.union` c2 `Set.union` c3)
-   in Hand s4 h4 d4 c4
+   in Hand props s4 h4 d4 c4
 
 isPartialDeal :: Hand -> Hand -> Hand -> Bool
 isPartialDeal h1 h2 h3 =
@@ -132,20 +157,20 @@ isPartialDeal h1 h2 h3 =
     || (numCardsInHand h1 < 13)
 
 numCardsInHand :: Hand -> Int
-numCardsInHand (Hand s h d c) = Set.size s + Set.size h + Set.size d + Set.size c
+numCardsInHand (Hand _ s h d c) = Set.size s + Set.size h + Set.size d + Set.size c
 
 isEmptyHand :: Hand -> Bool
-isEmptyHand (Hand s h d c) = Set.null s && Set.null h && Set.null d && Set.null c
+isEmptyHand (Hand _ s h d c) = Set.null s && Set.null h && Set.null d && Set.null c
 
 makeHandSuit :: Suit -> [Char] -> Set Card -- TODO: rename
 makeHandSuit s = Set.fromList . map (Card s . charToRank)
 
-makeHand :: [Char] -> [Char] -> [Char] -> [Char] -> Hand
-makeHand s h d c =
-  Hand (makeHandSuit Spades s) (makeHandSuit Hearts h) (makeHandSuit Diamonds d) (makeHandSuit Clubs c)
+makeHand :: HandProps -> [Char] -> [Char] -> [Char] -> [Char] -> Hand
+makeHand handProps s h d c =
+  Hand handProps (makeHandSuit Spades s) (makeHandSuit Hearts h) (makeHandSuit Diamonds d) (makeHandSuit Clubs c)
 
 emptyHand :: Hand
-emptyHand = makeHand [] [] [] []
+emptyHand = makeHand defaultHandProps [] [] [] []
 
 charToDirection :: Char -> Direction
 charToDirection c =
@@ -523,21 +548,3 @@ parseYYYYMM = parseTimeM True defaultTimeLocale "%Y%m"
 
 parseYYYY :: String -> Maybe Day
 parseYYYY = parseTimeM True defaultTimeLocale "%Y"
-
--- parseWithTitle :: Parser (Maybe Text, Text)
--- parseWithTitle = do
---   title <- dbg "manytill title" $ MP.manyTill (MP.try nonColon <|> doubleColon) (MPC.char ':')
---   author <- MP.manyTill (MP.satisfy (/= '\n')) MPC.newline
---   pure (Just $ T.pack title, T.pack author)
---   where
---     nonColon = MP.satisfy (/= ':')
---     doubleColon = do
---       MP.notFollowedBy (MPC.char ':')
---       c1 <- MPC.char ':'
---       c2 <- MPC.char ':'
---       pure c1
-
--- doubleColonParser :: Parser Char
--- doubleColonParser = do
---   dbg "not followed by" $ MP.notFollowedBy (MPC.char ':')
---   c <- dbg "parsing first colon" $ (MP.satisfy (/= ':'))

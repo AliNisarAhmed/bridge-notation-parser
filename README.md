@@ -302,3 +302,12 @@ Valid char: 23456789TJQKNSEWx:.;?
 - [x] - H W:K9.K9.9:3.A3.Q.4:Q82..J.A:A7.7.K8 (Note that West and South are void in clubs, and East is void in hearts. )
 
 - [x] - H W:43:KJ2:Q976:AT85 (only the spade suit)
+
+- [x] - H W:A875.632.76.8643;Q632.Q87.J842.Q2:KJT4.KJT4.AQ3.AJ; (North & South hands hidden)
+- [x] - H W:A8765.QT.K9.AT87;J42.AJ7632.J.632;QT3.85.Q86.KQJ54; (All except West hidden)
+
+(Same deals with different starting player)
+- [x] - H E;K5.T.KQJT98.KQJT:A876.A2.765.A876;32.KQJ9876543..9:
+- [x] - H S:A876.A2.765.A876;32.KQJ9876543..9:QJT94..A432.5432;
+- [x] - H W;32.KQJ9876543..9:QJT94..A432.5432;K5.T.KQJT98.KQJT:
+- [x] - H N:QJT94..A432.5432;K5.T.KQJT98.KQJT:A876.A2.765.A876;
