@@ -354,8 +354,8 @@ Valid char: 123456789ABCDEHNPRSWXYZ:!?*^
 
 ##### Examples
 
-- [ ] - A SZ:1SP2SP:4SA (South deals, none vul)
-- [ ] - A WE:A (West deals, E-W vul, passed out)
+- [x] - A SZ:1SP2SP:4SA (South deals, none vul)
+- [x] - A WE:A (West deals, E-W vul, passed out)
 - [ ] - A NB:1SXY (your call as South?)
 - [ ] - A S?:1SP2CP:2D (unknown vul, call sequence)
 - [ ] - A EB:3CP3N?P:PX!R^1A (East deals, both vul)

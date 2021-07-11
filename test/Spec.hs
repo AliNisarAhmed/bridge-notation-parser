@@ -80,6 +80,32 @@ main = hspec do
       testParseHiddenHands
     it "should parse same deal correctly no matter starting player" do
       testParseSameDealDifferentOrientation
+  describe "Test Auction Parser" do
+    it "should parse auction that ends in all pass" do
+      testAllPassAuctionParser
+    -- it "should parse Partial Auctions" do
+    --   testPartialAuctionParser
+
+testPartialAuctionParser :: IO ()
+testPartialAuctionParser = do
+  let i1 = "A S?:1SP2CP:2D\n"
+      result1 =
+        Auction
+          South
+          UnknownVul
+          [Bid LevelOne (Trump Spades), Pass, Bid LevelTwo (Trump Clubs), Pass, Bid LevelTwo (Trump Diamonds)]
+  MP.parse auctionParser "" i1 `shouldParse` result1
+
+testAllPassAuctionParser :: IO ()
+testAllPassAuctionParser = do
+  let i1 = "A SZ:1SP2SP:4SA\n"
+      spades = Trump Spades
+      auction1 = [Bid LevelOne spades, Pass, Bid LevelTwo spades, Pass, Bid LevelFour spades, Pass, Pass, Pass]
+      result1 = Auction South NoneVul auction1
+      i2 = "A WE:A\n"
+      auction2 = [Pass, Pass, Pass]
+      result2 = Auction West EastWestVul auction2
+  MP.parse auctionParser "" i1 `shouldParse` result1
 
 testParseSameDealDifferentOrientation :: IO ()
 testParseSameDealDifferentOrientation = do

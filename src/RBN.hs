@@ -153,28 +153,33 @@ auctionParser = do
   dealer <- parseDirection
   vul <- parseVul
   bids <- parseBids
+  MPC.newline
   pure $ Auction dealer vul bids
   where
     parseVul :: Parser Vul
-    parseVul = parseNoneVul <|> parseEWVul <|> parseNSVul <|> parseBothVul <|> pure UnknownVul
-    parseNoneVul = MP.try do
-      MPC.char 'Z'
-      pure NoneVul
-    parseEWVul = MP.try do
-      MPC.char 'E'
-      pure EastWestVul
-    parseNSVul = MP.try do
-      MPC.char 'N'
-      pure NorthSouthVul
-    parseBothVul = MP.try do
-      MPC.char 'B'
-      pure AllVul
+    parseVul =
+      MP.choice
+        [ NoneVul <$ MPC.char 'Z',
+          EastWestVul <$ MPC.char 'E',
+          NorthSouthVul <$ MPC.char 'N',
+          AllVul <$ MPC.char 'B',
+          UnknownVul <$ MPC.char '?'
+        ]
     parseBids :: Parser [Bid]
-    parseBids = undefined
+    parseBids = do
+      bids <- concat <$> MP.some parseBidRound
+      passes <- parseAllPass
+      pure $ bids ++ passes
+    parseAllPass :: Parser [Bid]
+    parseAllPass = MP.try do
+      MPC.char 'A'
+      pure [Pass, Pass, Pass]
     parseBidRound :: Parser [Bid]
-    parseBidRound = undefined
+    parseBidRound = do
+      MPC.char ':'
+      MP.some parseBid
     parseBid :: Parser Bid
-    parseBid = parsePass <|> parseDouble <|> parseRdbl <|> parseNoTrump <|> parseTrumpBid
+    parseBid = MP.try parsePass <|> MP.try parseDouble <|> MP.try parseRdbl <|> parseCall
     parsePass = do
       MPC.char 'P'
       pure Pass
@@ -184,19 +189,33 @@ auctionParser = do
     parseRdbl = do
       MPC.char 'R'
       pure Redouble
-    parseNoTrump :: Parser Bid
-    parseNoTrump = do
-      level <- parseBidLevel
-      MPC.char 'N'
-      pure $ Bid level NoTrump
-    parseTrumpBid = do
+    parseCall = do
       level <- parseBidLevel
       trump <- parseTrumpSuit
       pure $ Bid level trump
     parseTrumpSuit :: Parser BidSuit
-    parseTrumpSuit = charToBidSuit <$> MPCL.charLiteral
+    parseTrumpSuit =
+      MP.try $
+        charToBidSuit
+          <$> MP.choice
+            [ MPC.char 'S',
+              MPC.char 'H',
+              MPC.char 'D',
+              MPC.char 'C',
+              MPC.char 'N'
+            ]
     parseBidLevel :: Parser BidLevel
-    parseBidLevel = charToBidLevel <$> MPCL.charLiteral
+    parseBidLevel =
+      charToBidLevel
+        <$> MP.choice
+          [ MPC.char '1',
+            MPC.char '2',
+            MPC.char '3',
+            MPC.char '4',
+            MPC.char '5',
+            MPC.char '6',
+            MPC.char '7'
+          ]
 
 charToBidSuit :: Char -> BidSuit
 charToBidSuit 'S' = Trump Spades
