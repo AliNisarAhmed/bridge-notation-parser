@@ -98,14 +98,6 @@ data Vul
   | UnknownVul
   deriving (Eq, Show)
 
-instance Read Vul where
-  readsPrec _ (x : xs) =
-    case x of
-      'Z' -> [(NoneVul, xs)]
-      'E' -> [(EastWestVul, xs)]
-      'N' -> [(NorthSouthVul, xs)]
-      _ -> [(UnknownVul, xs)]
-
 data Bid
   = Pass
   | Double
@@ -122,17 +114,6 @@ data BidLevel
   | LevelSix
   | LevelSeven
   deriving (Eq, Ord, Show)
-
-instance Read BidLevel where
-  readsPrec _ (x : xs) =
-    case x of
-      '1' -> [(LevelOne, xs)]
-      '2' -> [(LevelTwo, xs)]
-      '3' -> [(LevelThree, xs)]
-      '4' -> [(LevelFour, xs)]
-      '5' -> [(LevelFive, xs)]
-      '6' -> [(LevelSix, xs)]
-      '7' -> [(LevelSeven, xs)]
 
 data BidSuit
   = Trump Suit
@@ -179,59 +160,37 @@ auctionParser = do
       MPC.char ':'
       MP.some parseBid
     parseBid :: Parser Bid
-    parseBid = MP.try parsePass <|> MP.try parseDouble <|> MP.try parseRdbl <|> parseCall
-    parsePass = do
-      MPC.char 'P'
-      pure Pass
-    parseDouble = do
-      MPC.char 'X'
-      pure Double
-    parseRdbl = do
-      MPC.char 'R'
-      pure Redouble
+    parseBid =
+      MP.choice
+        [ Pass <$ MPC.char 'P',
+          Double <$ MPC.char 'X',
+          Redouble <$ MPC.char 'R',
+          parseCall
+        ]
     parseCall = do
       level <- parseBidLevel
       trump <- parseTrumpSuit
       pure $ Bid level trump
     parseTrumpSuit :: Parser BidSuit
     parseTrumpSuit =
-      MP.try $
-        charToBidSuit
-          <$> MP.choice
-            [ MPC.char 'S',
-              MPC.char 'H',
-              MPC.char 'D',
-              MPC.char 'C',
-              MPC.char 'N'
-            ]
+      MP.choice
+        [ Trump Spades <$ MPC.char 'S',
+          Trump Hearts <$ MPC.char 'H',
+          Trump Diamonds <$ MPC.char 'D',
+          Trump Clubs <$ MPC.char 'C',
+          NoTrump <$ MPC.char 'N'
+        ]
     parseBidLevel :: Parser BidLevel
     parseBidLevel =
-      charToBidLevel
-        <$> MP.choice
-          [ MPC.char '1',
-            MPC.char '2',
-            MPC.char '3',
-            MPC.char '4',
-            MPC.char '5',
-            MPC.char '6',
-            MPC.char '7'
-          ]
-
-charToBidSuit :: Char -> BidSuit
-charToBidSuit 'S' = Trump Spades
-charToBidSuit 'H' = Trump Hearts
-charToBidSuit 'D' = Trump Diamonds
-charToBidSuit 'C' = Trump Clubs
-charToBidSuit 'N' = NoTrump
-
-charToBidLevel :: Char -> BidLevel
-charToBidLevel '1' = LevelOne
-charToBidLevel '2' = LevelTwo
-charToBidLevel '3' = LevelThree
-charToBidLevel '4' = LevelFour
-charToBidLevel '5' = LevelFive
-charToBidLevel '6' = LevelSix
-charToBidLevel '7' = LevelSeven
+      MP.choice
+        [ LevelOne <$ MPC.char '1',
+          LevelTwo <$ MPC.char '2',
+          LevelThree <$ MPC.char '3',
+          LevelFour <$ MPC.char '4',
+          LevelFive <$ MPC.char '5',
+          LevelSix <$ MPC.char '6',
+          LevelSeven <$ MPC.char '7'
+        ]
 
 ---- Hands Parser
 
@@ -257,7 +216,6 @@ handsParser = do
     parseHand :: Parser Hand
     parseHand = do
       handVisib <- parseHandVisib
-      -- MP.optional $ MPC.char ':'
       spades <- parseSuit Spades
       hearts <- parseSuit Hearts
       diamonds <- parseSuit Diamonds
@@ -271,9 +229,13 @@ handsParser = do
     isCard = (`elem` ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A'])
 
 parseDirection :: Parser Direction
-parseDirection = do
-  c <- MP.oneOf ['N', 'S', 'E', 'W']
-  pure $ charToDirection c
+parseDirection =
+  MP.choice
+    [ North <$ MPC.char 'N',
+      South <$ MPC.char 'S',
+      East <$ MPC.char 'E',
+      West <$ MPC.char 'W'
+    ]
 
 parseHandVisib :: Parser HandVisibility
 parseHandVisib =
@@ -318,14 +280,6 @@ makeHand handProps s h d c =
 
 emptyHand :: Hand
 emptyHand = makeHand defaultHandProps [] [] [] []
-
-charToDirection :: Char -> Direction
-charToDirection c =
-  case c of
-    'N' -> North
-    'S' -> South
-    'E' -> East
-    'W' -> West
 
 charToRank :: Char -> Rank
 charToRank c =
@@ -574,9 +528,16 @@ sessionParser = do
 
     knockoutRoundParser :: Parser Session
     knockoutRoundParser = do
-      c <- MPCL.charLiteral
+      c <-
+        MP.choice
+          [ Final <$ MPC.char 'F',
+            Semifinal <$ MPC.char 'S',
+            Quarterfinal <$ MPC.char 'Q',
+            Playoff <$ MPC.char 'P',
+            Qualifying <$ MPC.char 'I'
+          ]
       round <- roundParser
-      pure $ charToSession c round
+      pure $ c round
 
     roundParser :: Parser Int
     roundParser = do
@@ -602,13 +563,6 @@ sessionParser = do
         rp = do
           void $ MPC.char 'R'
           MPCL.decimal
-
-    charToSession :: Char -> (Int -> Session)
-    charToSession 'F' = Final
-    charToSession 'S' = Semifinal
-    charToSession 'Q' = Quarterfinal
-    charToSession 'P' = Playoff
-    charToSession 'I' = Qualifying
 
 ---- Event Parser ----
 
