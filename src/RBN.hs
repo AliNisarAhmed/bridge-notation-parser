@@ -99,11 +99,11 @@ data Vul
   deriving (Eq, Show)
 
 data Bid
-  = Pass
-  | Double
-  | Redouble
-  | YourCall -- not an actual bridge bid, used for asking the user what would their call be
-  | Bid BidLevel BidSuit
+  = Pass (Maybe Annotation)
+  | Double (Maybe Annotation)
+  | Redouble (Maybe Annotation)
+  | YourCall (Maybe Annotation) -- not an actual bridge bid, used for asking the user what would their call be
+  | Bid BidLevel BidSuit (Maybe Annotation)
   deriving (Eq, Show)
 
 data BidLevel
@@ -126,6 +126,17 @@ data Auction = Auction
     vul :: Vul,
     auction :: [Bid]
   }
+  deriving (Eq, Show)
+
+data Annotation
+  = Good
+  | Poor
+  | VeryGood
+  | VeryPoor
+  | Speculative
+  | Questionable
+  | Conventional
+  | Note Int Text
   deriving (Eq, Show)
 
 auctionParser :: Parser Auction
@@ -158,20 +169,23 @@ auctionParser = do
     parseAllPass :: Parser [Bid]
     parseAllPass = do
       MPC.char 'A'
-      pure [Pass, Pass, Pass]
+      pure [Pass Nothing, Pass Nothing, Pass Nothing]
     parseBidRound :: Parser [Bid]
     parseBidRound = do
       MPC.char ':'
       MP.some parseBid
     parseBid :: Parser Bid
-    parseBid =
-      MP.choice
-        [ Pass <$ MPC.char 'P',
-          Double <$ MPC.char 'X',
-          Redouble <$ MPC.char 'R',
-          YourCall <$ MPC.char 'Y',
-          parseCall
-        ]
+    parseBid = do
+      bid <-
+        MP.choice
+          [ Pass <$ MPC.char 'P',
+            Double <$ MPC.char 'X',
+            Redouble <$ MPC.char 'R',
+            YourCall <$ MPC.char 'Y',
+            parseCall
+          ]
+      anno <- MP.optional annotationParser
+      pure $ bid anno
     parseCall = do
       level <- parseBidLevel
       trump <- parseTrumpSuit
@@ -196,6 +210,25 @@ auctionParser = do
           LevelSix <$ MPC.char '6',
           LevelSeven <$ MPC.char '7'
         ]
+
+annotationParser :: Parser Annotation
+annotationParser =
+  MP.choice
+    [ VeryGood <$ MPC.string "!!",
+      VeryPoor <$ MPC.string "??",
+      Speculative <$ MPC.string "!?",
+      Questionable <$ MPC.string "?!",
+      Good <$ MPC.char '!',
+      Poor <$ MPC.char '?',
+      Conventional <$ MPC.char '*',
+      annotationNoteParser
+    ]
+
+annotationNoteParser :: Parser Annotation
+annotationNoteParser = do
+  MPC.char '^'
+  n <- MPCL.decimal
+  pure $ Note n ""
 
 ---- Hands Parser
 

@@ -87,6 +87,28 @@ main = hspec do
       testPartialAuctionParser
     it "should parse 'your call' embedded within auctions" do
       testYourCallParser
+    it "should successfully parse annotations" do
+      testAnnotationParser
+
+testAnnotationParser :: IO ()
+testAnnotationParser = do
+  let i1 = "A EB:3C*P3N?P:P??X!RA\n"
+      result1 =
+        Auction
+          East
+          BothVul
+          [ Bid LevelThree (Trump Clubs) (Just Conventional),
+            Pass Nothing,
+            Bid LevelThree NoTrump (Just Poor),
+            Pass Nothing,
+            Pass (Just VeryPoor),
+            Double (Just Good),
+            Redouble Nothing,
+            Pass Nothing,
+            Pass Nothing,
+            Pass Nothing
+          ]
+  MP.parse auctionParser "" i1 `shouldParse` result1
 
 testYourCallParser :: IO ()
 testYourCallParser = do
@@ -95,7 +117,7 @@ testYourCallParser = do
         Auction
           North
           BothVul
-          [Bid LevelOne (Trump Spades), Double, YourCall]
+          [Bid LevelOne (Trump Spades) Nothing, Double Nothing, YourCall Nothing]
   MP.parse auctionParser "" i1 `shouldParse` result1
 
 testPartialAuctionParser :: IO ()
@@ -105,17 +127,31 @@ testPartialAuctionParser = do
         Auction
           South
           UnknownVul
-          [Bid LevelOne (Trump Spades), Pass, Bid LevelTwo (Trump Clubs), Pass, Bid LevelTwo (Trump Diamonds)]
+          [ Bid LevelOne (Trump Spades) Nothing,
+            Pass Nothing,
+            Bid LevelTwo (Trump Clubs) Nothing,
+            Pass Nothing,
+            Bid LevelTwo (Trump Diamonds) Nothing
+          ]
   MP.parse auctionParser "" i1 `shouldParse` result1
 
 testAllPassAuctionParser :: IO ()
 testAllPassAuctionParser = do
   let i1 = "A SZ:1SP2SP:4SA\n"
       spades = Trump Spades
-      auction1 = [Bid LevelOne spades, Pass, Bid LevelTwo spades, Pass, Bid LevelFour spades, Pass, Pass, Pass]
+      auction1 =
+        [ Bid LevelOne spades Nothing,
+          Pass Nothing,
+          Bid LevelTwo spades Nothing,
+          Pass Nothing,
+          Bid LevelFour spades Nothing,
+          Pass Nothing,
+          Pass Nothing,
+          Pass Nothing
+        ]
       result1 = Auction South NoneVul auction1
       i2 = "A WE:A\n"
-      auction2 = [Pass, Pass, Pass]
+      auction2 = [Pass Nothing, Pass Nothing, Pass Nothing]
       result2 = Auction West EastWestVul auction2
   MP.parse auctionParser "" i1 `shouldParse` result1
 
