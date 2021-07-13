@@ -94,7 +94,7 @@ data Vul
   = NoneVul
   | NorthSouthVul
   | EastWestVul
-  | AllVul
+  | BothVul
   | UnknownVul
   deriving (Eq, Show)
 
@@ -102,6 +102,7 @@ data Bid
   = Pass
   | Double
   | Redouble
+  | YourCall -- not an actual bridge bid, used for asking the user what would their call be
   | Bid BidLevel BidSuit
   deriving (Eq, Show)
 
@@ -134,7 +135,7 @@ auctionParser = do
   dealer <- parseDirection
   vul <- parseVul
   bids <- parseBids
-  MPC.newline
+  -- MPC.newline
   pure $ Auction dealer vul bids
   where
     parseVul :: Parser Vul
@@ -143,16 +144,19 @@ auctionParser = do
         [ NoneVul <$ MPC.char 'Z',
           EastWestVul <$ MPC.char 'E',
           NorthSouthVul <$ MPC.char 'N',
-          AllVul <$ MPC.char 'B',
+          BothVul <$ MPC.char 'B',
           UnknownVul <$ MPC.char '?'
         ]
     parseBids :: Parser [Bid]
     parseBids = do
       bids <- concat <$> MP.some parseBidRound
-      passes <- parseAllPass
+      passes <- MP.try parseAllPass <|> parseEndOfBids
       pure $ bids ++ passes
+    parseEndOfBids = do
+      MPC.newline
+      pure []
     parseAllPass :: Parser [Bid]
-    parseAllPass = MP.try do
+    parseAllPass = do
       MPC.char 'A'
       pure [Pass, Pass, Pass]
     parseBidRound :: Parser [Bid]
@@ -165,6 +169,7 @@ auctionParser = do
         [ Pass <$ MPC.char 'P',
           Double <$ MPC.char 'X',
           Redouble <$ MPC.char 'R',
+          YourCall <$ MPC.char 'Y',
           parseCall
         ]
     parseCall = do

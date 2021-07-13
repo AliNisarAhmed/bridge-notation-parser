@@ -83,8 +83,20 @@ main = hspec do
   describe "Test Auction Parser" do
     it "should parse auction that ends in all pass" do
       testAllPassAuctionParser
-    -- it "should parse Partial Auctions" do
-    --   testPartialAuctionParser
+    it "should parse Partial Auctions" do
+      testPartialAuctionParser
+    it "should parse 'your call' embedded within auctions" do
+      testYourCallParser
+
+testYourCallParser :: IO ()
+testYourCallParser = do
+  let i1 = "A NB:1SXY\n"
+      result1 =
+        Auction
+          North
+          BothVul
+          [Bid LevelOne (Trump Spades), Double, YourCall]
+  MP.parse auctionParser "" i1 `shouldParse` result1
 
 testPartialAuctionParser :: IO ()
 testPartialAuctionParser = do
