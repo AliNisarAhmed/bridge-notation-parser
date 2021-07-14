@@ -89,6 +89,27 @@ main = hspec do
       testYourCallParser
     it "should successfully parse annotations" do
       testAnnotationParser
+    it "should successfully parse notes given after the auction" do
+      testAnnotationNotesParser
+
+testAnnotationNotesParser :: IO ()
+testAnnotationNotesParser = do
+  let i1 = "A EB:3CP3N?P:PX!R^1A\n1 Lost his mind\n"
+      result1 =
+        Auction
+          East
+          BothVul
+          [ Bid LevelThree (Trump Clubs) Nothing,
+            Pass Nothing,
+            Bid LevelThree NoTrump (Just Poor),
+            Pass Nothing,
+            Double (Just Good),
+            Redouble (Just $ Note 1 "Lost his mind"),
+            Pass Nothing,
+            Pass Nothing,
+            Pass Nothing
+          ]
+  MP.parse auctionParser "" i1 `shouldParse` result1
 
 testAnnotationParser :: IO ()
 testAnnotationParser = do

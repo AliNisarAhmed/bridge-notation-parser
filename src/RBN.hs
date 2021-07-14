@@ -139,6 +139,9 @@ data Annotation
   | Note Int Text
   deriving (Eq, Show)
 
+data NoteItem = NoteItem {noteNumber :: Int, contents :: Text}
+  deriving (Eq, Show)
+
 auctionParser :: Parser Auction
 auctionParser = do
   MPC.char 'A'
@@ -146,8 +149,9 @@ auctionParser = do
   dealer <- parseDirection
   vul <- parseVul
   bids <- parseBids
-  -- MPC.newline
-  pure $ Auction dealer vul bids
+  notes <- MP.optional parseNotes
+  let bidsWithNotes = mergeBidsWithNotes bids notes
+  pure $ Auction dealer vul bidsWithNotes
   where
     parseVul :: Parser Vul
     parseVul =
@@ -224,11 +228,59 @@ annotationParser =
       annotationNoteParser
     ]
 
+mergeBidsWithNotes :: [Bid] -> Maybe [NoteItem] -> [Bid]
+mergeBidsWithNotes bids Nothing = bids
+mergeBidsWithNotes bids (Just notes) =
+  merge bids notes
+  where
+    merge :: [Bid] -> [NoteItem] -> [Bid]
+    merge [] _ = []
+    merge _ [] = []
+    merge bids@(b : bs) notes@(NoteItem n c : ns) =
+      let anno = getAnnotationOfBid b
+       in case anno of
+            Nothing -> merge bs notes
+            Just (Note m _) ->
+              if m == n
+                then merge (updatedNoteInBid b c : bs) ns
+                else merge bids ns
+            Just _ -> merge bs notes
+      where
+        updatedNoteInBid :: Bid -> Text -> Bid
+        updatedNoteInBid bid c = undefined
+          -- let
+          --   anno = getAnnotationOfBid bid
+          --   updatedNote = updateNoteContent c anno
+          -- in
+          --   updateNoteInBid
+
+updateNoteContent :: Text -> Annotation -> Annotation
+updateNoteContent c (Note n _) = Note n c
+updateNoteContent _ n = n
+
+getAnnotationOfBid :: Bid -> Maybe Annotation
+getAnnotationOfBid (Pass n) = n
+getAnnotationOfBid (Double n) = n
+getAnnotationOfBid (Redouble n) = n
+getAnnotationOfBid (YourCall _) = Nothing
+getAnnotationOfBid (Bid _ _ n) = n
+
 annotationNoteParser :: Parser Annotation
 annotationNoteParser = do
   MPC.char '^'
   n <- MPCL.decimal
   pure $ Note n ""
+
+parseOneNote :: Parser NoteItem
+parseOneNote = do
+  n <- MPCL.decimal
+  MPC.space1
+  c <- MP.takeWhileP Nothing (/= '\n')
+  void $ MPC.newline
+  pure $ NoteItem n c
+
+parseNotes :: Parser [NoteItem]
+parseNotes = MP.some parseOneNote
 
 ---- Hands Parser
 
