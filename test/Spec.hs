@@ -89,28 +89,35 @@ main = hspec do
       testYourCallParser
     it "should successfully parse annotations" do
       testAnnotationParser
+    it "can parse notes in isolation" do
+      testNotesParser
+    it "should successfully parse notes given after the auction" do
+      testAnnotationNotesParser
 
--- it "should successfully parse notes given after the auction" do
---   testAnnotationNotesParser
+testNotesParser :: IO ()
+testNotesParser = do
+  let i1 = "1 Lost his mind\n2 His partner was fuming at this call\n"
+      result1 = Map.fromList [(1, "Lost his mind"), (2, "His partner was fuming at this call")]
+  MP.parse parseNotes "" i1 `shouldParse` result1
 
--- testAnnotationNotesParser :: IO ()
--- testAnnotationNotesParser = do
---   let i1 = "A EB:3CP3N?P:PX!R^1A\n1 Lost his mind\n"
---       result1 =
---         Auction
---           East
---           BothVul
---           [ Bid LevelThree (Trump Clubs) Nothing,
---             Pass Nothing,
---             Bid LevelThree NoTrump (Just Poor),
---             Pass Nothing,
---             Double (Just Good),
---             Redouble (Just $ Note 1 "Lost his mind"),
---             Pass Nothing,
---             Pass Nothing,
---             Pass Nothing
---           ]
---   MP.parse auctionParser "" i1 `shouldParse` result1
+testAnnotationNotesParser :: IO ()
+testAnnotationNotesParser = do
+  let i1 = "A EB:3CP3N?P:PX!R^1A\n1 Lost his mind\n"
+      result1 =
+        Auction
+          East
+          BothVul
+          ( [ Bid (BidCall LevelThree (Trump Clubs)) Nothing,
+              Bid Pass Nothing,
+              Bid (BidCall LevelThree NoTrump) (Just Poor),
+              Bid Pass Nothing,
+              Bid Pass Nothing,
+              Bid Double (Just Good),
+              Bid Redouble (Just $ Note 1 "Lost his mind")
+            ]
+              ++ allPass
+          )
+  MP.parse auctionParser "" i1 `shouldParse` result1
 
 testAnnotationParser :: IO ()
 testAnnotationParser = do
