@@ -98,14 +98,6 @@ data Vul
   | UnknownVul
   deriving (Eq, Show)
 
-data Bid
-  = Pass (Maybe Annotation)
-  | Double (Maybe Annotation)
-  | Redouble (Maybe Annotation)
-  | YourCall (Maybe Annotation) -- not an actual bridge bid, used for asking the user what would their call be
-  | Bid BidLevel BidSuit (Maybe Annotation)
-  deriving (Eq, Show)
-
 data BidLevel
   = LevelOne
   | LevelTwo
@@ -121,11 +113,12 @@ data BidSuit
   | NoTrump
   deriving (Eq, Show)
 
-data Auction = Auction
-  { dealer :: Direction,
-    vul :: Vul,
-    auction :: [Bid]
-  }
+data BidCall
+  = Pass
+  | Double
+  | Redouble
+  | YourCall
+  | BidCall BidLevel BidSuit
   deriving (Eq, Show)
 
 data Annotation
@@ -139,6 +132,19 @@ data Annotation
   | Note Int Text
   deriving (Eq, Show)
 
+data Bid = Bid
+  { bidCall :: BidCall,
+    annotation :: Maybe Annotation
+  }
+  deriving (Eq, Show)
+
+data Auction = Auction
+  { dealer :: Direction,
+    vul :: Vul,
+    auction :: [Bid]
+  }
+  deriving (Eq, Show)
+
 data NoteItem = NoteItem {noteNumber :: Int, contents :: Text}
   deriving (Eq, Show)
 
@@ -150,8 +156,8 @@ auctionParser = do
   vul <- parseVul
   bids <- parseBids
   notes <- MP.optional parseNotes
-  let bidsWithNotes = mergeBidsWithNotes bids notes
-  pure $ Auction dealer vul bidsWithNotes
+  -- let bidsWithNotes = mergeBidsWithNotes bids notes
+  pure $ Auction dealer vul bids
   where
     parseVul :: Parser Vul
     parseVul =
@@ -173,7 +179,7 @@ auctionParser = do
     parseAllPass :: Parser [Bid]
     parseAllPass = do
       MPC.char 'A'
-      pure [Pass Nothing, Pass Nothing, Pass Nothing]
+      pure allPass
     parseBidRound :: Parser [Bid]
     parseBidRound = do
       MPC.char ':'
@@ -189,11 +195,11 @@ auctionParser = do
             parseCall
           ]
       anno <- MP.optional annotationParser
-      pure $ bid anno
+      pure $ Bid bid anno
     parseCall = do
       level <- parseBidLevel
       trump <- parseTrumpSuit
-      pure $ Bid level trump
+      pure $ BidCall level trump
     parseTrumpSuit :: Parser BidSuit
     parseTrumpSuit =
       MP.choice
@@ -215,6 +221,9 @@ auctionParser = do
           LevelSeven <$ MPC.char '7'
         ]
 
+allPass :: [Bid]
+allPass = [Bid Pass Nothing, Bid Pass Nothing, Bid Pass Nothing]
+
 annotationParser :: Parser Annotation
 annotationParser =
   MP.choice
@@ -228,42 +237,43 @@ annotationParser =
       annotationNoteParser
     ]
 
-mergeBidsWithNotes :: [Bid] -> Maybe [NoteItem] -> [Bid]
-mergeBidsWithNotes bids Nothing = bids
-mergeBidsWithNotes bids (Just notes) =
-  merge bids notes
-  where
-    merge :: [Bid] -> [NoteItem] -> [Bid]
-    merge [] _ = []
-    merge _ [] = []
-    merge bids@(b : bs) notes@(NoteItem n c : ns) =
-      let anno = getAnnotationOfBid b
-       in case anno of
-            Nothing -> merge bs notes
-            Just (Note m _) ->
-              if m == n
-                then merge (updatedNoteInBid b c : bs) ns
-                else merge bids ns
-            Just _ -> merge bs notes
-      where
-        updatedNoteInBid :: Bid -> Text -> Bid
-        updatedNoteInBid bid c = undefined
-          -- let
-          --   anno = getAnnotationOfBid bid
-          --   updatedNote = updateNoteContent c anno
-          -- in
-          --   updateNoteInBid
+-- mergeBidsWithNotes :: [Bid] -> Maybe [NoteItem] -> [Bid]
+-- mergeBidsWithNotes bids Nothing = bids
+-- mergeBidsWithNotes bids (Just notes) =
+--   merge bids notes
+--   where
+--     merge :: [Bid] -> [NoteItem] -> [Bid]
+--     merge [] _ = []
+--     merge _ [] = []
+--     merge bids@(b : bs) notes@(NoteItem n c : ns) =
+--       let anno = getAnnotationOfBid b
+--        in case anno of
+--             Nothing -> merge bs notes
+--             Just (Note m _) ->
+--               if m == n
+--                 then merge (updatedNoteInBid b c : bs) ns
+--                 else merge bids ns
+--             Just _ -> merge bs notes
+--       where
+--         updatedNoteInBid :: Bid -> Text -> Bid
+--         updatedNoteInBid bid c = undefined
+
+-- let
+--   anno = getAnnotationOfBid bid
+--   updatedNote = updateNoteContent c anno
+-- in
+--   updateNoteInBid
 
 updateNoteContent :: Text -> Annotation -> Annotation
 updateNoteContent c (Note n _) = Note n c
 updateNoteContent _ n = n
 
-getAnnotationOfBid :: Bid -> Maybe Annotation
-getAnnotationOfBid (Pass n) = n
-getAnnotationOfBid (Double n) = n
-getAnnotationOfBid (Redouble n) = n
-getAnnotationOfBid (YourCall _) = Nothing
-getAnnotationOfBid (Bid _ _ n) = n
+-- getAnnotationOfBid :: Bid -> Maybe Annotation
+-- getAnnotationOfBid (Pass n) = n
+-- getAnnotationOfBid (Double n) = n
+-- getAnnotationOfBid (Redouble n) = n
+-- getAnnotationOfBid (YourCall _) = Nothing
+-- getAnnotationOfBid (Bid _ _ n) = n
 
 annotationNoteParser :: Parser Annotation
 annotationNoteParser = do
