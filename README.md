@@ -359,5 +359,31 @@ Valid char: 123456789ABCDEHNPRSWXYZ:!?*^
 - [x] - A NB:1SXY (your call as South?)
 - [x] - A S?:1SP2CP:2D (unknown vul, call sequence)
 - [x] - A EB:3C*P3N?P:P??X!RA (various annotations)
-- [ ] - A EB:3CP3N?P:PX!R^1A
+- [x] - A EB:3CP3N?P:PX!R^1A
         1 Lost his mind
+
+
+#### C = Contract & Declarer
+
+Max len: 24  Valid char: 0123456789CDEHMNRSWX:
+
+##### Spec
+
+- The contract consists of level, strain, jeopardy and goal (in that order) but only the strain is required.
+  - Level is a digit (1-7);
+  - strain is a letter (CDHSN);
+  - jeopardy is a letter (XR);
+  - and goal is a number of tricks to win (1-13) or the letter M (maximum).
+
+- Stating a goal is only necessary for endings (without a level) but is useful to show a true objective, as in a deliberate sacrifice bid.
+
+- Contract must be followed by a colon (:) and the declarer (NESW).
+- If the first leader is not to the left of declarer (as for an ending) append a second colon (:) and the first leader (NESW).
+
+##### Examples
+
+- [x] - C 5D:N (Five diamonds, North declarer)
+- [ ] - C 6NR:E (Six notrump rdbld, East declarer)
+- [ ] - C 4SX8:S (true goal to win 8 tricks)
+- [ ] - C H6:S:S (Hearts win 6, by S and S leads)
+- [ ] - C CM:W (Clubs win max, by W and N leads)

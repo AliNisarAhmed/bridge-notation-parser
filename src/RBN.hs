@@ -9,7 +9,7 @@ import Data.Time
 import Data.Void
 import RIO
 import qualified RIO.Map as Map
-import RIO.Partial (read, succ)
+import RIO.Partial (read, succ, toEnum)
 import Text.Megaparsec (Parsec)
 import qualified Text.Megaparsec as MP
 import qualified Text.Megaparsec.Char as MPC
@@ -87,6 +87,75 @@ class (Eq a, Enum a, Bounded a) => CyclicEnum a where
   next v
     | v == maxBound = minBound
     | otherwise = succ v
+
+---- Contract, Dealer and Opening Leads Parser
+data Contract = Contract
+  { level :: BidLevel,
+    suit :: BidSuit,
+    scoreModifier :: Maybe Jeopardy,
+    contractGoal :: Maybe ContractGoal,
+    declarer :: Direction,
+    openingLeader :: Direction
+  }
+  deriving (Eq, Show)
+
+data Jeopardy
+  = Doubled
+  | Redoubled
+  deriving (Eq, Show)
+
+data ContractGoal
+  = MaximumTricks
+  | NumberOfTricks NumberOfTricks
+  deriving (Eq, Show)
+
+data NumberOfTricks
+  = ZeroTricks
+  | OneTrick
+  | TwoTricks
+  | ThreeTricks
+  | FourTricks
+  | FiveTricks
+  | SixTricks
+  | SevenTricks
+  | EightTricks
+  | NineTricks
+  | TenTricks
+  | ElevenTricks
+  | TwelveTricks
+  | ThirteenTricks
+  deriving (Eq, Show, Enum)
+
+instance Num NumberOfTricks where
+  fromInteger x = toEnum (fromInteger x) :: NumberOfTricks
+  x + y = toEnum (fromEnum x + fromEnum y)
+  x * y = toEnum (fromEnum x * fromEnum y)
+  abs = id
+  signum _ = 1
+  negate = id
+
+contractParser :: Parser Contract
+contractParser = do
+  MPC.char 'C'
+  MPC.space1
+  level <- parseBidLevel
+  suit <- parseTrumpSuit
+  jeopardy <- MP.optional parseJeopardy
+  goal <- MP.optional parseGoal
+  MPC.char ':'
+  declarer <- parseDirection
+  leader <- MP.try parseOpeningLeader <|> pure (next declarer)
+  void MPC.newline
+  pure $ Contract level suit jeopardy goal declarer leader
+  where
+    parseJeopardy :: Parser Jeopardy
+    parseJeopardy = MP.choice [Doubled <$ MPC.char 'X', Redoubled <$ MPC.char 'R']
+    parseGoal :: Parser ContractGoal
+    parseGoal = MP.choice [MaximumTricks <$ MPC.char 'M', NumberOfTricks <$> MPCL.decimal]
+    parseOpeningLeader :: Parser Direction
+    parseOpeningLeader = do
+      MPC.char ':'
+      parseDirection
 
 ---- Auction Parser
 
@@ -202,26 +271,28 @@ auctionParser = do
       level <- parseBidLevel
       trump <- parseTrumpSuit
       pure $ BidCall level trump
-    parseTrumpSuit :: Parser BidSuit
-    parseTrumpSuit =
-      MP.choice
-        [ Trump Spades <$ MPC.char 'S',
-          Trump Hearts <$ MPC.char 'H',
-          Trump Diamonds <$ MPC.char 'D',
-          Trump Clubs <$ MPC.char 'C',
-          NoTrump <$ MPC.char 'N'
-        ]
-    parseBidLevel :: Parser BidLevel
-    parseBidLevel =
-      MP.choice
-        [ LevelOne <$ MPC.char '1',
-          LevelTwo <$ MPC.char '2',
-          LevelThree <$ MPC.char '3',
-          LevelFour <$ MPC.char '4',
-          LevelFive <$ MPC.char '5',
-          LevelSix <$ MPC.char '6',
-          LevelSeven <$ MPC.char '7'
-        ]
+
+parseTrumpSuit :: Parser BidSuit
+parseTrumpSuit =
+  MP.choice
+    [ Trump Spades <$ MPC.char 'S',
+      Trump Hearts <$ MPC.char 'H',
+      Trump Diamonds <$ MPC.char 'D',
+      Trump Clubs <$ MPC.char 'C',
+      NoTrump <$ MPC.char 'N'
+    ]
+
+parseBidLevel :: Parser BidLevel
+parseBidLevel =
+  MP.choice
+    [ LevelOne <$ MPC.char '1',
+      LevelTwo <$ MPC.char '2',
+      LevelThree <$ MPC.char '3',
+      LevelFour <$ MPC.char '4',
+      LevelFive <$ MPC.char '5',
+      LevelSix <$ MPC.char '6',
+      LevelSeven <$ MPC.char '7'
+    ]
 
 allPass :: [Bid]
 allPass = [Bid Pass Nothing, Bid Pass Nothing, Bid Pass Nothing]

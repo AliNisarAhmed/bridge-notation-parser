@@ -93,6 +93,15 @@ main = hspec do
       testNotesParser
     it "should successfully parse notes given after the auction" do
       testAnnotationNotesParser
+  describe "Test Contract Parser" do
+    it "should parse undoubled contract and declarer" do
+      testUndoubleContractAndDeclarerParser
+
+testUndoubleContractAndDeclarerParser :: IO ()
+testUndoubleContractAndDeclarerParser = do
+  let i1 = "C 5D:N\n"
+      result1 = Contract LevelFive (Trump Diamonds) Nothing Nothing North East
+  MP.parse contractParser "" i1 `shouldParse` result1
 
 testNotesParser :: IO ()
 testNotesParser = do
