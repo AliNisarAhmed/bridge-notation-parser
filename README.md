@@ -386,5 +386,5 @@ Max len: 24  Valid char: 0123456789CDEHMNRSWX:
 - [x] - C 6NR:E (Six notrump rdbld, East declarer)
 - [x] - C 7CX:N (7 Clubs Doubled, North declarer)
 - [x] - C 4SX8:S (true goal to win 8 tricks)
-- [ ] - C H6:S:S (Hearts win 6, by S and S leads)
-- [ ] - C CM:W (Clubs win max, by W and N leads)
+- [x] - C H6:S:S (Hearts win 6, by S and S leads)
+- [x] - C CM:W (Clubs win max, by W and N leads)

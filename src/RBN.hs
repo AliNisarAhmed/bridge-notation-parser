@@ -90,13 +90,18 @@ class (Eq a, Enum a, Bounded a) => CyclicEnum a where
 
 ---- Contract, Dealer and Opening Leads Parser
 data Contract = Contract
-  { level :: BidLevel,
+  { contractLevel :: ContractLevel,
     suit :: BidSuit,
     scoreModifier :: Maybe Jeopardy,
     contractGoal :: Maybe ContractGoal,
     declarer :: Direction,
     onLead :: Direction
   }
+  deriving (Eq, Show)
+
+data ContractLevel
+  = TrickGoal
+  | ContractLevel BidLevel
   deriving (Eq, Show)
 
 data Jeopardy
@@ -138,7 +143,7 @@ contractParser :: Parser Contract
 contractParser = do
   MPC.char 'C'
   MPC.space1
-  level <- parseBidLevel
+  level <- MP.try (ContractLevel <$> parseBidLevel) <|> pure TrickGoal
   suit <- parseTrumpSuit
   jeopardy <- MP.optional parseJeopardy
   goal <- MP.optional parseGoal

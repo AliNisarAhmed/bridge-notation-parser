@@ -100,22 +100,45 @@ main = hspec do
       testDoubledAndRedbledContracts
     it "should parse contracts given with a goal" do
       testContractWithGoalsParser
-    -- it "should parse given on-lead player" do
-    --   testContractWithOnLeadPlayer
+    it "should parse given on-lead player" do
+      testContractWithOnLeadPlayer
+    it "should correctly parse partial deal with trick goals" do
+      testPartialContractWithTrickGoal
 
--- testContractWithOnLeadPlayer :: IO ()
--- testContractWithOnLeadPlayer = do
---   let i1 = "C H6:S:S\n"
---       result1 =
---         Contract
---           { level = }
+testPartialContractWithTrickGoal :: IO ()
+testPartialContractWithTrickGoal = do
+  let i1 = "C CM:W\n"
+      result1 =
+        Contract
+          { contractLevel = TrickGoal,
+            suit = Trump Clubs,
+            scoreModifier = Nothing,
+            contractGoal = Just $ MaximumTricks,
+            declarer = West,
+            onLead = North
+          }
+  MP.parse contractParser "" i1 `shouldParse` result1
+
+testContractWithOnLeadPlayer :: IO ()
+testContractWithOnLeadPlayer = do
+  let i1 = "C H6:S:S\n"
+      result1 =
+        Contract
+          { contractLevel = TrickGoal,
+            suit = Trump Hearts,
+            scoreModifier = Nothing,
+            contractGoal = Just $ NumberOfTricks SixTricks,
+            declarer = South,
+            onLead = South
+          }
+  MP.parse contractParser "" i1 `shouldParse` result1
 
 testContractWithGoalsParser :: IO ()
 testContractWithGoalsParser = do
   let i1 = "C 4SX8:S\n"
       result1 =
         Contract
-          { level = LevelFour,
+          { contractLevel = ContractLevel LevelFour,
             suit = Trump Spades,
             scoreModifier = Just Doubled,
             contractGoal = Just $ NumberOfTricks EightTricks,
@@ -129,7 +152,7 @@ testDoubledAndRedbledContracts = do
   let i1 = "C 6NR:E\n"
       result1 =
         Contract
-          { level = LevelSix,
+          { contractLevel = ContractLevel LevelSix,
             suit = NoTrump,
             scoreModifier = Just Redoubled,
             contractGoal = Nothing,
@@ -139,7 +162,7 @@ testDoubledAndRedbledContracts = do
       i2 = "C 7CX:N\n"
       result2 =
         Contract
-          { level = LevelSeven,
+          { contractLevel = ContractLevel LevelSeven,
             suit = Trump Clubs,
             scoreModifier = Just Doubled,
             contractGoal = Nothing,
@@ -152,7 +175,7 @@ testDoubledAndRedbledContracts = do
 testUndoubleContractAndDeclarerParser :: IO ()
 testUndoubleContractAndDeclarerParser = do
   let i1 = "C 5D:N\n"
-      result1 = Contract LevelFive (Trump Diamonds) Nothing Nothing North East
+      result1 = Contract (ContractLevel LevelFive) (Trump Diamonds) Nothing Nothing North East
   MP.parse contractParser "" i1 `shouldParse` result1
 
 testNotesParser :: IO ()
