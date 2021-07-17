@@ -96,6 +96,58 @@ main = hspec do
   describe "Test Contract Parser" do
     it "should parse undoubled contract and declarer" do
       testUndoubleContractAndDeclarerParser
+    it "should correctly parse double and redoubled contracts" do
+      testDoubledAndRedbledContracts
+    it "should parse contracts given with a goal" do
+      testContractWithGoalsParser
+    -- it "should parse given on-lead player" do
+    --   testContractWithOnLeadPlayer
+
+-- testContractWithOnLeadPlayer :: IO ()
+-- testContractWithOnLeadPlayer = do
+--   let i1 = "C H6:S:S\n"
+--       result1 =
+--         Contract
+--           { level = }
+
+testContractWithGoalsParser :: IO ()
+testContractWithGoalsParser = do
+  let i1 = "C 4SX8:S\n"
+      result1 =
+        Contract
+          { level = LevelFour,
+            suit = Trump Spades,
+            scoreModifier = Just Doubled,
+            contractGoal = Just $ NumberOfTricks EightTricks,
+            declarer = South,
+            onLead = West
+          }
+  MP.parse contractParser "" i1 `shouldParse` result1
+
+testDoubledAndRedbledContracts :: IO ()
+testDoubledAndRedbledContracts = do
+  let i1 = "C 6NR:E\n"
+      result1 =
+        Contract
+          { level = LevelSix,
+            suit = NoTrump,
+            scoreModifier = Just Redoubled,
+            contractGoal = Nothing,
+            declarer = East,
+            onLead = South
+          }
+      i2 = "C 7CX:N\n"
+      result2 =
+        Contract
+          { level = LevelSeven,
+            suit = Trump Clubs,
+            scoreModifier = Just Doubled,
+            contractGoal = Nothing,
+            declarer = North,
+            onLead = East
+          }
+  MP.parse contractParser "" i1 `shouldParse` result1
+  MP.parse contractParser "" i2 `shouldParse` result2
 
 testUndoubleContractAndDeclarerParser :: IO ()
 testUndoubleContractAndDeclarerParser = do

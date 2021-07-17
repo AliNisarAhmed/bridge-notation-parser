@@ -95,7 +95,7 @@ data Contract = Contract
     scoreModifier :: Maybe Jeopardy,
     contractGoal :: Maybe ContractGoal,
     declarer :: Direction,
-    openingLeader :: Direction
+    onLead :: Direction
   }
   deriving (Eq, Show)
 
