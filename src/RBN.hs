@@ -88,7 +88,101 @@ class (Eq a, Enum a, Bounded a) => CyclicEnum a where
     | v == maxBound = minBound
     | otherwise = succ v
 
+---- Play of the hand Parser
+
+data PlayedCard = PlayedCard
+  { playedCardType :: PlayedCardType, -- TODO: rename maybe
+    suit :: Suit,
+    rank :: Rank,
+    annotation :: Maybe Annotation
+  }
+  deriving (Eq, Show)
+
+data PlayedCardType
+  = Discard
+  | SuitFollowed
+  | SuitLed
+  deriving (Eq, Show)
+
+data Trick = Trick
+  { firstCard :: PlayedCard,
+    secondCard :: PlayedCard,
+    thirdCard :: PlayedCard,
+    fourthCard :: PlayedCard
+  }
+  deriving (Eq, Show)
+
+type Play = [Trick]
+
+playParser :: Parser Play
+playParser = do
+  MPC.char 'P'
+  MPC.space1
+  tricks <- MP.many parsePlayRound
+  void $ MPC.newline
+  pure tricks
+
+parsePlayRound :: Parser Trick
+parsePlayRound = do
+  void $ MP.optional $ MPC.char ':'
+  f <- parseFirstCard
+  s <- parseSubsequentCard f.suit
+  t <- parseSubsequentCard f.suit
+  fourth <- parseSubsequentCard f.suit
+  pure $ Trick f s t fourth
+
+parseSubsequentCard :: Suit -> Parser PlayedCard
+parseSubsequentCard suit = MP.try parseDiscard <|> parseSuitFollowed suit
+
+parseDiscard :: Parser PlayedCard
+parseDiscard = do
+  s <- parseSuit
+  r <- parseRank
+  anno <- MP.optional parseAnnotation
+  pure $ PlayedCard Discard s r anno
+
+parseSuitFollowed :: Suit -> Parser PlayedCard
+parseSuitFollowed s = do
+  r <- parseRank
+  anno <- MP.optional parseAnnotation
+  pure $ PlayedCard SuitFollowed s r anno
+
+parseFirstCard :: Parser PlayedCard
+parseFirstCard = do
+  s <- parseSuit
+  r <- parseRank
+  anno <- MP.optional parseAnnotation
+  pure $ PlayedCard SuitLed s r anno
+
+parseSuit :: Parser Suit
+parseSuit =
+  MP.choice
+    [ Spades <$ MPC.char 'S',
+      Hearts <$ MPC.char 'H',
+      Diamonds <$ MPC.char 'D',
+      Clubs <$ MPC.char 'C'
+    ]
+
+parseRank :: Parser Rank
+parseRank =
+  MP.choice
+    [ Two <$ MPC.char '2',
+      Three <$ MPC.char '3',
+      Four <$ MPC.char '4',
+      Five <$ MPC.char '5',
+      Six <$ MPC.char '6',
+      Seven <$ MPC.char '7',
+      Eight <$ MPC.char '8',
+      Nine <$ MPC.char '9',
+      Ten <$ MPC.char 'T',
+      Jack <$ MPC.char 'J',
+      Queen <$ MPC.char 'Q',
+      King <$ MPC.char 'K',
+      Ace <$ MPC.char 'A'
+    ]
+
 ---- Contract, Dealer and Opening Leads Parser
+
 data Contract = Contract
   { contractLevel :: ContractLevel,
     suit :: BidSuit,
@@ -270,7 +364,7 @@ auctionParser = do
             YourCall <$ MPC.char 'Y',
             parseCall
           ]
-      anno <- MP.optional annotationParser
+      anno <- MP.optional parseAnnotation
       pure $ Bid bid anno
     parseCall = do
       level <- parseBidLevel
@@ -302,8 +396,8 @@ parseBidLevel =
 allPass :: [Bid]
 allPass = [Bid Pass Nothing, Bid Pass Nothing, Bid Pass Nothing]
 
-annotationParser :: Parser Annotation
-annotationParser =
+parseAnnotation :: Parser Annotation
+parseAnnotation =
   MP.choice
     [ VeryGood <$ MPC.string "!!",
       VeryPoor <$ MPC.string "??",

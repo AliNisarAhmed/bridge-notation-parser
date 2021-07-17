@@ -104,6 +104,36 @@ main = hspec do
       testContractWithOnLeadPlayer
     it "should correctly parse partial deal with trick goals" do
       testPartialContractWithTrickGoal
+  describe "Test Play Parser" do
+    it "should correctly parse tricks without annotations" do
+      testParsePlayWithoutAnnotation
+
+testParsePlayWithoutAnnotation :: IO ()
+testParsePlayWithoutAnnotation = do
+  let i1 = "P SK54T:SA87H3:HA245:HKQ8J\n"
+      result1 =
+        [ Trick
+            (PlayedCard SuitLed Spades King Nothing)
+            (PlayedCard SuitFollowed Spades Five Nothing)
+            (PlayedCard SuitFollowed Spades Four Nothing)
+            (PlayedCard SuitFollowed Spades Ten Nothing),
+          Trick
+            (PlayedCard SuitLed Spades Ace Nothing)
+            (PlayedCard SuitFollowed Spades Eight Nothing)
+            (PlayedCard SuitFollowed Spades Seven Nothing)
+            (PlayedCard Discard Hearts Three Nothing),
+          Trick
+            (PlayedCard SuitLed Hearts Ace Nothing)
+            (PlayedCard SuitFollowed Hearts Two Nothing)
+            (PlayedCard SuitFollowed Hearts Four Nothing)
+            (PlayedCard SuitFollowed Hearts Five Nothing),
+          Trick
+            (PlayedCard SuitLed Hearts King Nothing)
+            (PlayedCard SuitFollowed Hearts Queen Nothing)
+            (PlayedCard SuitFollowed Hearts Eight Nothing)
+            (PlayedCard SuitFollowed Hearts Jack Nothing)
+        ]
+  MP.parse playParser "" i1 `shouldParse` result1
 
 testPartialContractWithTrickGoal :: IO ()
 testPartialContractWithTrickGoal = do

@@ -362,6 +362,7 @@ Valid char: 123456789ABCDEHNPRSWXYZ:!?*^
 - [x] - A EB:3CP3N?P:PX!R^1A
         1 Lost his mind
 
+---
 
 #### C = Contract & Declarer
 
@@ -388,3 +389,34 @@ Max len: 24  Valid char: 0123456789CDEHMNRSWX:
 - [x] - C 4SX8:S (true goal to win 8 tricks)
 - [x] - C H6:S:S (Hearts win 6, by S and S leads)
 - [x] - C CM:W (Clubs win max, by W and N leads)
+
+---
+
+#### P = Play
+
+Max len: 128 Valid char: 123456789ACDHJKQSTY:;+-~.!?*^
+
+##### Spec
+
+- Represents the play sequence in the exact order of cards played.
+- Each trick begins with the lead and is followed by the second, third and fourth plays.
+- Tricks are separated by a colon, or a semicolon to mean “plays that follow are unimportant or trivial.”
+- The play can end at any time (including mid-trick); just stop writing.
+
+- Plays are shown by suit and rank, except when following to the suit led, then only the rank is given.
+- This method not only saves keystrokes but should be the universal norm, as discards and ruffs stand out, making it easier to follow the play.
+
+- Any play may be followed by a notation:
+  - ! = good
+  - ? = poor
+  - !! = very good
+  - ?? = very poor
+  - !? = speculative
+  - ?! = questionable
+  - * = conventional (no explanation follows)
+  - ^1 = see note (1-9 allowed)
+
+##### Examples
+
+- [x] - P SK54T:SA87H3:HA245:HKQ8J
+- [ ] - P HQ*3J2:HK47A:DJA53:HT68C7^1
