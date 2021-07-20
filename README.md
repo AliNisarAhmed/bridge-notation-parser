@@ -419,4 +419,6 @@ Max len: 128 Valid char: 123456789ACDHJKQSTY:;+-~.!?*^
 ##### Examples
 
 - [x] - P SK54T:SA87H3:HA245:HKQ8J
+- [x] - P HQ*3J2:HK47A:DJA53:HT68C7^1
 - [ ] - P HQ*3J2:HK47A:DJA53:HT68C7^1
+        1 subtle falsecard

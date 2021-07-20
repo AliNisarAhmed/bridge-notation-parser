@@ -120,7 +120,29 @@ playParser = do
   MPC.space1
   tricks <- MP.many parsePlayRound
   void $ MPC.newline
-  pure tricks
+  notes <- MP.optional parseNotes
+  let tricksWithNotes = mergeTricksWithNotes tricks notes
+  pure tricksWithNotes
+
+mergeTricksWithNotes :: [Trick] -> Maybe NoteCollection -> [Trick]
+mergeTricksWithNotes tricks Nothing = tricks
+mergeTricksWithNotes tricks (Just notes) = map merge tricks
+  where
+    merge :: Trick -> Trick
+    merge trick@(Trick p1 p2 p3 p4) =
+      let ns = getNotesFromTrick trick
+          [n1, n2, n3, n4] = map (updateNote notes) ns
+       in Trick (p1{annotation = n1}) (p2{annotation = n2}) (p3{annotation = n3}) (p4{annotation = n4})
+
+updateNote :: NoteCollection -> Maybe Annotation -> Maybe Annotation
+updateNote collection (Just (Note n c)) = do
+  c <- Map.lookup n collection
+  pure $ Note n c
+updateNote _ n = n
+
+getNotesFromTrick :: Trick -> [Maybe Annotation]
+getNotesFromTrick (Trick c1 c2 c3 c4) =
+  map (annotation :: PlayedCard -> Maybe Annotation) [c1, c2, c3, c4]
 
 parsePlayRound :: Parser Trick
 parsePlayRound = do

@@ -107,6 +107,64 @@ main = hspec do
   describe "Test Play Parser" do
     it "should correctly parse tricks without annotations" do
       testParsePlayWithoutAnnotation
+    it "should correctly parse tricks with annotations" do
+      testParsePlayWithAnnotation
+    it "should correctly parse tricks with notes given at the end" do
+      testParsePlayWithNotes
+
+testParsePlayWithNotes :: IO ()
+testParsePlayWithNotes = do
+  let i1 = "P HQ*3J2:HK47A:DJA53:HT68C7^1\n1 subtle falsecard\n"
+      result1 =
+        [ Trick
+            (PlayedCard SuitLed Hearts Queen (Just Conventional))
+            (PlayedCard SuitFollowed Hearts Three Nothing)
+            (PlayedCard SuitFollowed Hearts Jack Nothing)
+            (PlayedCard SuitFollowed Hearts Two Nothing),
+          Trick
+            (PlayedCard SuitLed Hearts King Nothing)
+            (PlayedCard SuitFollowed Hearts Four Nothing)
+            (PlayedCard SuitFollowed Hearts Seven Nothing)
+            (PlayedCard SuitFollowed Hearts Ace Nothing),
+          Trick
+            (PlayedCard SuitLed Diamonds Jack Nothing)
+            (PlayedCard SuitFollowed Diamonds Ace Nothing)
+            (PlayedCard SuitFollowed Diamonds Five Nothing)
+            (PlayedCard SuitFollowed Diamonds Three Nothing),
+          Trick
+            (PlayedCard SuitLed Hearts Ten Nothing)
+            (PlayedCard SuitFollowed Hearts Six Nothing)
+            (PlayedCard SuitFollowed Hearts Eight Nothing)
+            (PlayedCard Discard Clubs Seven (Just $ Note 1 "subtle falsecard"))
+        ]
+  MP.parse playParser "" i1 `shouldParse` result1
+
+testParsePlayWithAnnotation :: IO ()
+testParsePlayWithAnnotation = do
+  let i1 = "P HQ*3J2:HK47A:DJA53:HT68C7^1\n"
+      result1 =
+        [ Trick
+            (PlayedCard SuitLed Hearts Queen (Just Conventional))
+            (PlayedCard SuitFollowed Hearts Three Nothing)
+            (PlayedCard SuitFollowed Hearts Jack Nothing)
+            (PlayedCard SuitFollowed Hearts Two Nothing),
+          Trick
+            (PlayedCard SuitLed Hearts King Nothing)
+            (PlayedCard SuitFollowed Hearts Four Nothing)
+            (PlayedCard SuitFollowed Hearts Seven Nothing)
+            (PlayedCard SuitFollowed Hearts Ace Nothing),
+          Trick
+            (PlayedCard SuitLed Diamonds Jack Nothing)
+            (PlayedCard SuitFollowed Diamonds Ace Nothing)
+            (PlayedCard SuitFollowed Diamonds Five Nothing)
+            (PlayedCard SuitFollowed Diamonds Three Nothing),
+          Trick
+            (PlayedCard SuitLed Hearts Ten Nothing)
+            (PlayedCard SuitFollowed Hearts Six Nothing)
+            (PlayedCard SuitFollowed Hearts Eight Nothing)
+            (PlayedCard Discard Clubs Seven (Just $ Note 1 ""))
+        ]
+  MP.parse playParser "" i1 `shouldParse` result1
 
 testParsePlayWithoutAnnotation :: IO ()
 testParsePlayWithoutAnnotation = do
