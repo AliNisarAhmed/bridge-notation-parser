@@ -111,6 +111,40 @@ main = hspec do
       testParsePlayWithAnnotation
     it "should correctly parse tricks with notes given at the end" do
       testParsePlayWithNotes
+    it "should correctly parse pseudo plays" do
+      testParsePseudoPlays
+
+testParsePseudoPlays :: IO ()
+testParsePseudoPlays = do
+  let i1 = "P SK--.:STQA.\n"
+      i2 = "P SK--.:STQA.:--+-:S578.\n"
+      result1 =
+        [ Trick
+            (PlayedCard SuitLed Spades King Nothing)
+            LowestUnplayed
+            LowestUnplayed
+            ImmaterialDiscard,
+          Trick
+            (PlayedCard SuitLed Spades Ten Nothing)
+            (PlayedCard SuitFollowed Spades Queen Nothing)
+            (PlayedCard SuitFollowed Spades Ace Nothing)
+            ImmaterialDiscard
+        ]
+      result2 =
+        result1
+          ++ [ Trick
+                 LowestUnplayed
+                 LowestUnplayed
+                 HighestUnplayed
+                 LowestUnplayed,
+               Trick
+                 (PlayedCard SuitLed Spades Five Nothing)
+                 (PlayedCard SuitFollowed Spades Seven Nothing)
+                 (PlayedCard SuitFollowed Spades Eight Nothing)
+                 ImmaterialDiscard
+             ]
+  MP.parse playParser "" i1 `shouldParse` result1
+  MP.parse playParser "" i2 `shouldParse` result2
 
 testParsePlayWithNotes :: IO ()
 testParsePlayWithNotes = do

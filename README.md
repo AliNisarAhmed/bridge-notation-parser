@@ -416,9 +416,27 @@ Max len: 128 Valid char: 123456789ACDHJKQSTY:;+-~.!?*^
   - * = conventional (no explanation follows)
   - ^1 = see note (1-9 allowed)
 
+
+##### Pseudo Plays
+
+- The ability to denote plays as insignificant can be useful.
+  - A minus sign (-) indicates the lowest unplayed card;
+  - so does a tilde (~) although the choice of suit is significant;
+  - a plus sign (+) means the highest unplayed card;
+  - and a dot (.) means an immaterial discard.
+
+To illustrate, suppose I want to diagram the play of this suit, say spades: North A-J-8-4-3-2, South K-10-5, West Q-9-7-6 and East void. With South on lead the first two tricks would be:
+
+- [x] - P SK--.:STQA.
+
+I could have written ‘62’ instead of the two minus signs, but as shown it conveys that these plays are insignificant (unlike the second trick). Poor East has no cards, so the dots represent his irrelevant discards. Note that to run this suit, I must return to the South hand in another suit to finesse again. Enter the suitless trick, which has three possibilities (-+--, --+-, ---+) with the plus sign denoting the hand relative to leader to which the lead will be transferred. Thus, the essential play of this suit can be fully described by:
+
+- [x] - P SK--.:STQA.:--+-:S578
+
 ##### Examples
 
 - [x] - P SK54T:SA87H3:HA245:HKQ8J
 - [x] - P HQ*3J2:HK47A:DJA53:HT68C7^1
-- [ ] - P HQ*3J2:HK47A:DJA53:HT68C7^1
+- [x] - P HQ*3J2:HK47A:DJA53:HT68C7^1
         1 subtle falsecard
+

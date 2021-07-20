@@ -90,12 +90,16 @@ class (Eq a, Enum a, Bounded a) => CyclicEnum a where
 
 ---- Play of the hand Parser
 
-data PlayedCard = PlayedCard
-  { playedCardType :: PlayedCardType, -- TODO: rename maybe
-    suit :: Suit,
-    rank :: Rank,
-    annotation :: Maybe Annotation
-  }
+data PlayedCard
+  = PlayedCard
+      { playedCardType :: PlayedCardType, -- TODO: rename maybe
+        suit :: Suit,
+        rank :: Rank,
+        annotation :: Maybe Annotation
+      }
+  | LowestUnplayed -- either '-' or '~'
+  | HighestUnplayed -- '+'
+  | ImmaterialDiscard -- '.'
   deriving (Eq, Show)
 
 data PlayedCardType
@@ -147,10 +151,10 @@ getNotesFromTrick (Trick c1 c2 c3 c4) =
 parsePlayRound :: Parser Trick
 parsePlayRound = do
   void $ MP.optional $ MPC.char ':'
-  f <- parseFirstCard
-  s <- parseSubsequentCard f.suit
-  t <- parseSubsequentCard f.suit
-  fourth <- parseSubsequentCard f.suit
+  f <- MP.try parseFirstCard <|> parsePseudoPlays
+  s <- MP.try $ parseSubsequentCard f.suit <|> parsePseudoPlays
+  t <- MP.try $ parseSubsequentCard f.suit <|> parsePseudoPlays
+  fourth <- MP.try $ parseSubsequentCard f.suit <|> parsePseudoPlays
   pure $ Trick f s t fourth
 
 parseSubsequentCard :: Suit -> Parser PlayedCard
@@ -175,6 +179,15 @@ parseFirstCard = do
   r <- parseRank
   anno <- MP.optional parseAnnotation
   pure $ PlayedCard SuitLed s r anno
+
+parsePseudoPlays :: Parser PlayedCard
+parsePseudoPlays =
+  MP.choice
+    [ LowestUnplayed <$ MPC.char '-',
+      LowestUnplayed <$ MPC.char '~',
+      HighestUnplayed <$ MPC.char '+',
+      ImmaterialDiscard <$ MPC.char '.'
+    ]
 
 parseSuit :: Parser Suit
 parseSuit =
