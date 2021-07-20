@@ -1,6 +1,7 @@
 module Main where
 
 import Data.Time
+import Domain.Types
 import RBN
 import RIO
 import qualified RIO.Map as Map

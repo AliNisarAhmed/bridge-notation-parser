@@ -433,10 +433,46 @@ I could have written ‘62’ instead of the two minus signs, but as shown it co
 
 - [x] - P SK--.:STQA.:--+-:S578
 
+Another pseudo play, analogous to the A (auction) label, is the letter Y to mean “Your play?” but it can only be the last play. This is useful for quizzes. (NOT IMPLEMENTED)
+
 ##### Examples
 
 - [x] - P SK54T:SA87H3:HA245:HKQ8J
 - [x] - P HQ*3J2:HK47A:DJA53:HT68C7^1
 - [x] - P HQ*3J2:HK47A:DJA53:HT68C7^1
         1 subtle falsecard
+
+---
+
+#### R = Result & Score
+
+Max len: 16  Valid char: 0123456789P:+-=.
+
+##### Spec
+
+- The result is the number of tricks won by declarer, or the letter P if passed out.
+- This may be followed immediately by a sign (+/-) and the actual raw score.
+
+- Optionally, this may be followed by a separator (:) and the effective score.
+- This may be
+  - an equal sign (=) to indicate a push or tie,
+  - a sign (+/-) and a number of IMPs (+1 or -1 for board-a-match),
+  - or a plain number to indicate a matchpoint percentage.
+
+- Decimal fractions of two places (hundredths) are allowed.
+
+- All scores (raw or effective) are relative to North-South.
+
+##### Examples
+
+- [ ] - R 11 (declarer won 11 tricks)
+- [ ] - R 10+620 (declarer won 10 tricks, NS +620)
+- [ ] - R 8-300:+4 (8 tricks, EW +300, NS +4 IMPs)
+- [ ] - R P:-2 (passed out, EW won 2 IMPs)
+- [ ] - R 12-980:-11 (12 tricks, EW +980, +11 IMPs)
+- [ ] - R :66.67 (result unknown, NS 66.67 percent)
+- [ ] - R 5:-1 (5 tricks won, EW won board if BAM)
+- [ ] - R +2140:+12.29 (NS +2140 and +12.29 IMPs)
+- [ ] - R 7-750:7 (7 tricks, EW +750, 93 percent)
+- [ ] - R 9-100:= (9 tricks, EW +100, tie board)
 

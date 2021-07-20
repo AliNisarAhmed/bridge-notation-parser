@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 24440fa62f24fe92fb6eeb653d9adb5bb033c7e87f73aaf392d5a82441b4c96b
+-- hash: 9c79137e0364039db46a5d64cc7c1c782f78d59b67606f20aaeb59e1a1037772
 
 name:           bridge-notation-parser
 version:        0.0.0
@@ -12,6 +12,7 @@ build-type:     Simple
 
 library
   exposed-modules:
+      Domain.Types
       RBN
   other-modules:
       Paths_bridge_notation_parser
