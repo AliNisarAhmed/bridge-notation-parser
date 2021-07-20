@@ -114,6 +114,16 @@ main = hspec do
       testParsePlayWithNotes
     it "should correctly parse pseudo plays" do
       testParsePseudoPlays
+  describe "Test Result Parser" do
+    it "should parse correctly when only Number of tricks are given" do
+      testNumberOfTricksOnlyResult
+
+testNumberOfTricksOnlyResult :: IO ()
+testNumberOfTricksOnlyResult = do
+  let i1 = "R 11\n"
+      result1 =
+        DealResult (Just ElevenTricks) Nothing Nothing
+  MP.parse resultParser "" i1 `shouldParse` result1
 
 testParsePseudoPlays :: IO ()
 testParsePseudoPlays = do

@@ -22,23 +22,30 @@ type Parser = Parsec Void Text
 
 ---- Result and Score Parser
 
--- data DealResult = DealResult
---   { numberOfTricks :: Maybe NumberOfTricks,
---     bridgeScore :: Maybe PairPartscore,
---     matchScore :: Maybe Double
---   }
---   deriving (Eq, Show)
-
--- data PairPartscore
---   = NorthSouthPartscore Int
---   | EastWestParscore Int
---   deriving (Eq, Show)
-
--- resultParser :: Parser DealResult
--- resultParser = do
---   MPC.char 'R'
---   MPC.space1
---   numTricks <- MP.try (ZeroTricks <$ MPC.c)
+resultParser :: Parser DealResult
+resultParser = do
+  MPC.char 'R'
+  MPC.space1
+  numTricks <- MP.optional MPCL.decimal
+  scoreDetail <- MP.optional (parseAllPass <|> parseBridgeScore)
+  matchScore <- MP.optional parseMatchScore
+  void MPC.newline
+  pure $ DealResult numTricks scoreDetail matchScore
+  where
+    parseAllPass = AllPass <$ MPC.char 'P'
+    parseBridgeScore =
+      MP.try
+        ( do
+            MPC.char '+'
+            NorthSouthPartscore <$> MPCL.decimal
+        )
+        <|> ( do
+                MPC.char '-'
+                EastWestPartscore <$> MPCL.decimal
+            )
+    parseMatchScore = do
+      MPC.char ':'
+      MPCL.signed (pure ()) MPCL.float
 
 ---- Play of the hand Parser
 
@@ -527,26 +534,6 @@ teamsParser = do
       pure (s1, s2)
 
 ---- Scoring Parser
-
-data Scoring
-  = IMPs (Maybe ScoreDetail)
-  | BoardAMatch (Maybe ScoreDetail)
-  | TotalPoints (Maybe ScoreDetail)
-  | IMPPairs (Maybe ScoreDetail)
-  | Matchpoints (Maybe ScoreDetail)
-  | InstantMatchpoints (Maybe ScoreDetail)
-  | RubberBridge (Maybe ScoreDetail)
-  | Chicago (Maybe ScoreDetail)
-  | Cavendish (Maybe ScoreDetail)
-  | PlusOrFishfood (Maybe ScoreDetail)
-  deriving (Eq, Show)
-
-data ScoreDetail
-  = YearOfScoring Int
-  | NorthSouthPartscore Int
-  | EastWestPartscore Int
-  | GeneralScoreDetail Text
-  deriving (Eq, Show)
 
 scoringParser :: Parser Scoring
 scoringParser = do

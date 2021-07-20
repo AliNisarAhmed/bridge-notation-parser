@@ -465,7 +465,7 @@ Max len: 16  Valid char: 0123456789P:+-=.
 
 ##### Examples
 
-- [ ] - R 11 (declarer won 11 tricks)
+- [x] - R 11 (declarer won 11 tricks)
 - [ ] - R 10+620 (declarer won 10 tricks, NS +620)
 - [ ] - R 8-300:+4 (8 tricks, EW +300, NS +4 IMPs)
 - [ ] - R P:-2 (passed out, EW won 2 IMPs)

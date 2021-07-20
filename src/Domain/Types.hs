@@ -72,7 +72,6 @@ class (Eq a, Enum a, Bounded a) => CyclicEnum a where
     | v == maxBound = minBound
     | otherwise = succ v
 
-
 data Vul
   = NoneVul
   | NorthSouthVul
@@ -103,7 +102,6 @@ data BidCall
   | YourCall
   | BidCall BidLevel BidSuit
   deriving (Eq, Show)
-
 
 data Contract = Contract
   { contractLevel :: ContractLevel,
@@ -204,5 +202,35 @@ data Auction = Auction
   { dealer :: Direction,
     vul :: Vul,
     auction :: [Bid]
+  }
+  deriving (Eq, Show)
+
+----------- SCORING ---------------
+
+data Scoring
+  = IMPs (Maybe ScoreDetail)
+  | BoardAMatch (Maybe ScoreDetail)
+  | TotalPoints (Maybe ScoreDetail)
+  | IMPPairs (Maybe ScoreDetail)
+  | Matchpoints (Maybe ScoreDetail)
+  | InstantMatchpoints (Maybe ScoreDetail)
+  | RubberBridge (Maybe ScoreDetail)
+  | Chicago (Maybe ScoreDetail)
+  | Cavendish (Maybe ScoreDetail)
+  | PlusOrFishfood (Maybe ScoreDetail)
+  deriving (Eq, Show)
+
+data ScoreDetail
+  = YearOfScoring Int
+  | NorthSouthPartscore Int
+  | EastWestPartscore Int
+  | GeneralScoreDetail Text
+  | AllPass
+  deriving (Eq, Show)
+
+data DealResult = DealResult
+  { numberOfTricks :: Maybe NumberOfTricks,
+    bridgeScore :: Maybe ScoreDetail,
+    matchScore :: Maybe Double
   }
   deriving (Eq, Show)
